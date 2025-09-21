@@ -17,11 +17,11 @@ body{width:100%;height:100%}
 .icon{width:140px;flex:0 0 78px;user-select:none;display:flex;gap:12px;align-items:center;cursor:pointer;background:linear-gradient(180deg,rgba(255,255,255,0.01),rgba(255,255,255,0));padding:10px;border-radius:var(--radius);transition:transform .14s,box-shadow .14s}
 .icon:hover{transform:translateY(-6px);box-shadow:0 12px 30px rgba(0,0,0,0.6)}
 .icon .img{width:56px;height:56px;display:flex;align-items:center;justify-content:center;border-radius:12px;font-weight:800;color:var(--accent);font-size:18px;background:transparent;border:1px solid rgba(255,255,255,0.06)}
-/* Desktop file shortcuts (e.g., notes) label: clip with ellipsis so long names don't overflow */
+
 #desktopIcons .icon[data-file-id] label{display:block;max-width:62%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
  .icon label{font-size:13px;color:var(--accent);font-weight:700}
 
-/* Enhanced hover selection animation (no click required) */
+
 @keyframes hoverPulse{from{box-shadow:inset 0 0 0 0 rgba(255,255,255,0.18);opacity:1}to{box-shadow:inset 0 0 0 14px rgba(255,255,255,0);opacity:0}}
 .icon{position:relative}
 .icon::after{content:"";position:absolute;inset:0;border-radius:var(--radius);pointer-events:none;opacity:0}
@@ -32,41 +32,41 @@ body{width:100%;height:100%}
 .icon label{transition:color .18s,transform .18s}
 .icon:hover label{transform:translateY(-1px);color:#ffffff}
 .taskbar{position:fixed;left:0;right:0;bottom:0;height:64px;border-radius:18px;display:flex;align-items:center;padding:10px 18px;gap:12px;background:rgba(255,255,255,0.02);z-index:90000;box-shadow:0 10px 40px rgba(0,0,0,0.6);backdrop-filter:blur(6px);box-sizing:border-box;transition:width .28s ease,max-width .28s ease,padding .28s ease}
-/* Dock wrapper that physically slides the bar */
+
 .dock-wrap{ position:fixed; left:0; right:0; bottom:0; z-index:90000; display:flex; justify-content:center; pointer-events:none; }
 .dock-wrap > .taskbar{ pointer-events:auto; position:static; left:auto; right:auto; bottom:auto; z-index:auto; }
 .dock-wrap.autohide{ will-change: transform; transition: transform .36s cubic-bezier(.22,.85,.25,1); }
 .dock-wrap.autohide.hidden{ transform: translateY(140%); }
-/* Search button (visible in centered mode) */
+
 .taskbar .searchbtn{display:none;align-items:center;justify-content:center;width:36px;height:36px;border-radius:10px;border:1px solid rgba(255,255,255,0.08);background:linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02));color:#ffffff;cursor:pointer}
 .taskbar .searchbtn:hover{box-shadow:inset 0 0 0 1px rgba(255,255,255,0.55)}
 .taskbar.centered .searchbtn{display:inline-flex}
 .taskbar:not(.centered) .searchbtn{display:none}
-/* Centered dock style (optional via personalization) */
+
 .taskbar.centered{transform:none !important;display:inline-flex;width:max-content !important;min-width:360px;max-width:calc(100vw - 24px);padding-left:14px;padding-right:14px;border-radius:22px;transition:transform .42s cubic-bezier(.22,.85,.25,1);will-change:transform;background:rgba(24,26,30,0.88) !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
 .dock-wrap.autohide{bottom:10px;}
-/* hidden state handled by .dock-wrap.hidden */
+
 .taskbar.centered .task-mid{flex:0 1 auto;overflow-x:auto;min-width:260px;white-space:nowrap}
 
-/* Keep taskbar invisible before boot completes to avoid clashing with BIOS/boot UI */
+
 .taskbar.preboot-hidden{opacity:0; pointer-events:none; transform:translateY(30px);}
 .taskbar.centered #taskRight,.taskbar.centered .task-right{display:flex !important;flex:0 0 auto;align-items:center;gap:6px}
 .taskbar.centered #taskLeft,.taskbar.centered .task-left{flex:0 0 auto}
 .taskbar.centered .task-mid::before,
 .taskbar.centered .task-mid::after{content:"";display:block;flex:0 0 6px}
-/* Ensure non-centered dock sits fully at bottom */
+
 .taskbar:not(.centered){bottom:0}
 
-/* Dock slide animations */
+
 @keyframes dockIn { from { transform: translate3d(-50%, calc(100% + 18px), 0); } to { transform: translate3d(-50%, 0, 0); } }
 @keyframes dockOut { from { transform: translate3d(-50%, 0, 0); } to { transform: translate3d(-50%, calc(100% + 18px), 0); } }
 .taskbar.centered.autohide.revealing { animation: dockIn 0.36s cubic-bezier(.22,.85,.25,1) forwards; }
 .taskbar.centered.autohide.hiding { animation: dockOut 0.32s cubic-bezier(.22,.85,.25,1) forwards; }
-/* Compact search in centered mode: fully collapsed until expanded */
+
 .taskbar.centered #taskbarSearch{flex:0 1 auto;width:0;min-width:0;padding-inline:0;opacity:0;transition:width .26s ease, opacity .16s ease, padding .26s ease}
 .taskbar.centered #taskbarSearch.expanded,
 .taskbar.centered #taskbarSearch:focus{width:220px;min-width:160px;padding-inline:10px;opacity:1}
-/* In full mode, show input normally and hide the button */
+
 .taskbar:not(.centered) #taskbarSearch{flex:0 1 280px;width:280px;min-width:200px;padding-inline:10px;opacity:1}
 .taskbar.centered .task-mid > *{margin-left:1px;margin-right:1px;transition:transform .18s ease}
 .taskbar.centered .task-mid > *:active{transform:scale(.96)}
@@ -74,14 +74,14 @@ body{width:100%;height:100%}
 .taskbar.style-switch{animation:dockEnter 160ms ease-out 1}
 .taskbar.centered.style-switch{animation:dockEnter 160ms ease-out 1}
 .taskbar.centered .task-mid.style-switch{animation:dockEnter 160ms ease-out 1}
-/* Slide-in animation for child elements (no layout teleport, no fade-out) */
+
 @keyframes dockSlide{0%{opacity:1;transform:translateY(6px) scale(0.992)}100%{opacity:1;transform:none}}
 .taskbar.centered.dock-anim .start-btn,
 .taskbar.centered.dock-anim #taskbarSearch,
 .taskbar.centered.dock-anim .task-right > *,
 .taskbar.centered.dock-anim .task-mid > *{animation:dockSlide 340ms cubic-bezier(.22,.85,.25,1) both}
 .taskbar.centered.dock-anim .task-mid > *{animation-delay:calc(var(--i, 0) * 36ms)}
-/* Ensure indicators visible even if globally hidden elsewhere */
+
 .taskbar #wifiIndicator,.taskbar #volumeIndicator,.taskbar #timeDisplay{display:inline-flex !important}
 @media (max-width:880px){.taskbar.centered{left:0;right:0;transform:none;width:auto}}
 .start-btn{width:48px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:15px;cursor:pointer;border:1px solid rgba(255,255,255,0.08);background:linear-gradient(180deg,rgba(255,255,255,0.07),rgba(255,255,255,0.02));color:var(--accent);user-select:none;-webkit-user-select:none;-ms-user-select:none}
@@ -111,7 +111,7 @@ body{width:100%;height:100%}
 .start-title{margin:0 0 12px 0;text-align:center;font-weight:900;letter-spacing:.2px}
 .app-tile[data-app="calc"]{font-size:14px;}
 .start-menu-section{margin-top:8px}
-/* Center RT text cleanly on Start button without altering original size */
+
 #startBtn{display:flex;align-items:center;justify-content:center;line-height:1;font-weight:800;letter-spacing:.2px;text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased}
 .start-search{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 12px;border-radius:12px;background:linear-gradient(180deg,rgba(255,255,255,0.02),rgba(255,255,255,0));border:1px solid rgba(255,255,255,0.06);cursor:pointer;user-select:none}
 .start-search:hover{background:rgba(255,255,255,0.06)}
@@ -120,7 +120,7 @@ body{width:100%;height:100%}
 .start-search .label{color:#d8dbe0;font-weight:700}
 .start-search .arrow{margin-left:auto;color:#fff;opacity:.9;font-weight:800}
 
-/* Slide hint when jumping from Start to Search */
+
 @keyframes startToSearch{from{transform:translateX(0);opacity:1}to{transform:translateX(30px);opacity:.0}}
 #startMenu.to-search{animation:startToSearch .18s ease forwards}
 .searchbox{width:250px;padding:11px 16px;border-radius:9px;background:rgba(24,27,31,0.82);border:1px solid rgba(255,255,255,0.04);color:#fff;font-size:16px;margin-right:14px;user-select:text;transition:border-color .16s ease, box-shadow .16s ease, background .16s ease;}
@@ -140,7 +140,7 @@ body{width:100%;height:100%}
 .window:not([data-maxed="1"]):active,.window:not([data-maxed="1"]).focus{transform:translateY(-6px);box-shadow:0 40px 110px rgba(0,0,0,0.8);}
 .window[data-maxed="1"],
 .window[data-maxed="1"].focus {
-  /* Remove drop shadow to avoid visual overlap with taskbar */
+  
   box-shadow:none;
   border-radius:var(--radius);
   background:rgba(20,22,25,0.96) !important;
@@ -148,7 +148,7 @@ body{width:100%;height:100%}
 .window.no-elevate { box-shadow:0 18px 60px rgba(0,0,0,0.55); }
 .window[data-maxed="1"]:not([data-opening="1"]):not([data-bounce="1"]):not([data-closing="1"]),
 .window.no-elevate:not([data-opening="1"]):not([data-bounce="1"]):not([data-closing="1"]) {
-  /* Only suppress the elevate transform after opening finishes */
+  
   transform:none !important;
 }
 .window.closing{animation:popOut .18s forwards;pointer-events:none;will-change:transform,opacity;transition:none !important;}
@@ -164,11 +164,11 @@ body{width:100%;height:100%}
 .wbtn:hover{background:rgba(255,255,255,0.13);}
 .win-body{flex:1;padding:8px;overflow:auto;background:transparent;}
 
-/* Custom resize handles: 8 zones with larger hit area for smooth control */
+
 .win-resize-handle{position:absolute;z-index:5;pointer-events:auto}
 .win-resize-handle.edge{background:transparent}
 .win-resize-handle.corner{background:transparent}
-/* 10px thick edges, 14px corners for easier grab */
+
 .win-h-n{top:-2px;left:12px;right:12px;height:8px;cursor:ns-resize}
 .win-h-s{bottom:-2px;left:12px;right:12px;height:10px;cursor:ns-resize}
 .win-h-e{top:12px;right:-2px;bottom:12px;width:8px;cursor:ew-resize}
@@ -195,7 +195,7 @@ input:focus,textarea:focus{outline:2px solid var(--accent);}
 .boot-meta{margin-top:10px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;}
 .boot-spinner{display:inline-block;width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,0.06);border-top-color:var(--accent);animation:spin 1s linear infinite;margin-right:8px;}
 @keyframes spin{from{transform:rotate(0)}to{transform:rotate(360deg)}}
-/* Accent-driven tweaks (dark base) */
+
 .btn:focus-visible, .btn:active{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(255,255,255,0.03), 0 0 0 3px var(--accent-weak)}
 .wbtn:hover{border-color:var(--accent)}
 .searchbox:focus{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-weak)}
@@ -205,14 +205,14 @@ input:focus, textarea:focus, select:focus{outline:none;border-color:var(--accent
 .app-tile:hover{outline:2px solid var(--accent)}
 .context-menu-item:hover{color:#fff}
 
-/* Boot logs */
+
 .boot-logs{margin-top:12px;text-align:left;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.03);border-radius:10px;max-height:140px;overflow:auto;padding:10px;font-size:12px;color:#cfd3d7}
 .boot-logs .log-line{opacity:.85}
 .boot-logs .ok{color:#8be08b}
 .boot-logs .warn{color:#ffd37a}
 .boot-logs .err{color:#ff8a8a}
 
-/* Shutdown overlay styling */
+
 .shutdown-screen {
   position: fixed;
   inset: 0;
@@ -226,7 +226,7 @@ input:focus, textarea:focus, select:focus{outline:none;border-color:var(--accent
   color: #fff;
 }
 .shutdown-screen.off {
-  background: #000; /* powered-off state: no UI visible */
+  background: #000; 
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
@@ -246,7 +246,7 @@ input:focus, textarea:focus, select:focus{outline:none;border-color:var(--accent
 .shutdown-spinner { display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,0.15);border-top-color:#fff;animation:spin 1s linear infinite;margin-right:8px;vertical-align:middle;}
 .power-on-hint { opacity: 0.85; }
 
-/* Power-on prompt styles */
+
 .power-on-wrap { text-align:center; color:#fff; }
 .power-on-title { font-weight:800; font-size:22px; margin-bottom:10px; }
 .power-on-sub { color:var(--muted); font-size:14px; margin-bottom:16px; }
@@ -302,12 +302,12 @@ input:focus, textarea:focus, select:focus{outline:none;border-color:var(--accent
 
 
 .canvas-wrapper {
-  flex: 0 0 auto; /* don't stretch; fit the canvas */
+  flex: 0 0 auto; 
   position: relative;
   width: 1920px;
   height: 1080px;
-  background: #1a1c20; /* match canvas bg to hide any seam */
-  border: none; /* remove 1px gap caused by border */
+  background: #1a1c20; 
+  border: none; 
   border-radius: 8px;
   overflow: hidden;
   min-height: 0;
@@ -451,7 +451,7 @@ input:focus, textarea:focus, select:focus{outline:none;border-color:var(--accent
   animation: fadeIn 0.3s ease-out;
 }
 
-/* Click animation for desktop icons */
+
 @keyframes clickBounce {
   0%   { transform: translateY(0) scale(1); box-shadow: 0 0 0 rgba(255,255,255,0); }
   45%  { transform: translateY(2px) scale(0.94); box-shadow: 0 10px 26px rgba(0,0,0,0.55); }
@@ -470,7 +470,7 @@ input:focus, textarea:focus, select:focus{outline:none;border-color:var(--accent
   animation: desktopAppear 0.8s ease-out forwards;
 }
 
-/* Boot desktop reveal animations */
+
 @keyframes taskbarIn {
   from { opacity: 0; transform: translateY(30px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -498,7 +498,7 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
     gap: 20px;
   }
   .icon {
-    width: 140px; /* Match windowed width to avoid narrow icons in fullscreen */
+    width: 140px; 
   }
 }
 
@@ -522,7 +522,7 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
   line-height: 1;
 }
 
-/* NEW STYLES FOR IMPROVEMENTS */
+
 .media-player {
   width: 100%;
   height: 100%;
@@ -638,13 +638,13 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
 
 .desktop-icons-grid {
   display: flex;
-  flex-direction: column;   /* fill downward first */
-  flex-wrap: wrap;          /* then wrap to next column */
-  align-content: flex-start;/* columns from the left */
+  flex-direction: column;   
+  flex-wrap: wrap;          
+  align-content: flex-start;
   gap: 14px;
   padding: 28px;
-  height: calc(100vh - 76px); /* leave space for full-width taskbar + bottom gap */
-  overflow: visible;        /* no scroll on desktop */
+  height: calc(100vh - 76px); 
+  overflow: visible;        
 }
 
 .files-app-container {
@@ -741,7 +741,7 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
   color: var(--muted);
 }
 
-/* Settings app (Windows-like) */
+
 .settings-container { display:flex; height:100%; gap:16px; }
 .settings-nav {
   width: 220px;
@@ -769,8 +769,8 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  min-height: 0; /* allow inner page to scroll */
-  overflow: hidden; /* keep scroll on page, not container */
+  min-height: 0; 
+  overflow: hidden; 
 }
 .settings-section { background: rgba(255,255,255,0.01); border-radius: 12px; padding: 14px; border:1px solid rgba(255,255,255,0.04); }
 .settings-h1 { font-weight:800; font-size:22px; }
@@ -779,7 +779,7 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
 .kv .k { color: var(--muted); }
 .kv .v { font-weight:600; }
 
-/* Settings hero + page animation */
+
 .settings-hero { display:flex; align-items:center; gap:14px; }
 .settings-hero-logo {
   width:56px; height:56px; border-radius:14px;
@@ -811,8 +811,8 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
   position:fixed;right:18px;bottom:88px;width:340px;max-width:92vw;
   background:rgba(24,26,30,0.96);
   backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
-  border-radius:var(--radius); /* match Start menu radius (18px) */
-  border:1px solid rgba(255,255,255,0.95); /* match Start menu white border */
+  border-radius:var(--radius); 
+  border:1px solid rgba(255,255,255,0.95); 
   box-shadow:0 24px 64px rgba(0,0,0,0.65);
   z-index:90025;overflow:hidden
 }
@@ -833,20 +833,20 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
 </style>
 </head>
 <body>
-<!-- Boot chime audio: place 'boot-chime.mp3' next to this HTML file or update the src -->
-<audio id="bootChime" src="RTOSBOOTFINAL1.0.mp3" preload="auto" style="display:none"></audio>
-<!-- Shutdown chime audio -->
-<audio id="shutdownChime" src="RTOSSHUTDOWNFINAL1.0.mp3" preload="auto" style="display:none"></audio>
-<!-- Installation screen removed: app starts directly at boot screen -->
 
-<!-- Boot screen (shown after installation) -->
+<audio id="bootChime" src="RTOSBOOTFINAL1.0.mp3" preload="auto" style="display:none"></audio>
+
+<audio id="shutdownChime" src="RTOSSHUTDOWNFINAL1.0.mp3" preload="auto" style="display:none"></audio>
+
+
+
 <div id="boot"><div class="boot-card white-corners neon-outline"><div class="logo">RT OS</div>
 <div class="boot-sub">Loading RT OS — sleek, modern, and customizable</div>
 <div class="progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100"><div id="progress" class="progress-bar"></div></div>
 <div class="boot-meta"><div id="bootStatus"><span class="boot-spinner"></span> Initializing modules…</div><div id="bootPct">0%</div></div>
 </div></div>
 
-<!-- Main desktop -->
+
 <div id="desktop">
 <div class="wallpaper" id="wallpaperEl"></div>
 <div class="desktop-inner" id="desktopInner" style="opacity:0;">
@@ -879,7 +879,7 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
 </div>
 </div>
 
-<!-- Start Menu -->
+
 <div id="startMenu" class="white-corners" role="menu" aria-hidden="true">
 <h3 class="start-title">RT OS</h3>
 <div class="start-grid">
@@ -896,10 +896,10 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
 </div>
 </div>
 
-<!-- Search Results -->
+
 <div id="searchResults" aria-live="polite" aria-atomic="true"></div>
 
-<!-- Context Menu -->
+
 <div id="contextMenu" class="context-menu">
   <div class="context-menu-item" id="cmAddToDesktop">Add to Desktop</div>
   <div class="context-menu-item" id="cmRemoveFromDesktop">Remove from Desktop</div>
@@ -910,7 +910,7 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
   <div class="context-menu-item" id="cmAppProperties">Properties</div>
 </div>
 
-<!-- File Context Menu -->
+
 <div id="fileContextMenu" class="file-context-menu">
   <div class="file-context-menu-item" id="fileCtxOpen">Open</div>
   <div class="file-context-menu-item" id="fileCtxAddToDesktop">Add to Desktop</div>
@@ -920,7 +920,7 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
 </div>
 
 <script>
-/* RT OS — Enhanced with all requested improvements */
+
 const MAX_WINDOWS = 10**100;
 // Embed audio files directly into the HTML
 const bootChimeAudio = new Audio(`data:audio/mpeg;base64,SUQzBAAAAAAAI1RTU0UAAAAPAAADTGF2ZjYwLjE2LjEwMAAAAAAAAAAAAAAA//uQZAAIAyZovonm
@@ -5568,17 +5568,17 @@ function findAccountByName(name) {
   return match || null;
 }
 
-// Very simple hash to avoid storing plaintext; not cryptographically strong.
+
 function simpleHash(str='') {
   let h = 0; for (let i=0; i<str.length; i++) { h = (h*31 + str.charCodeAt(i))|0; } return String(h>>>0);
 }
 
 function createAccount(name, avatarDataURL, password) {
   loadAccounts();
-  // Require non-empty name and password
+
   if (!name || !String(name).trim()) return false;
   if (!password || !String(password)) return false;
-  // If an account with the same name exists, sign in instead of creating a duplicate
+ 
   const existing = findAccountByName(name);
   if (existing) {
     const res = signInAccount(existing.id, password||'');
@@ -5588,7 +5588,7 @@ function createAccount(name, avatarDataURL, password) {
   __accounts.users[id] = { id, name: (name||'User'), avatarDataURL: avatarDataURL||'', passHash: simpleHash(password||'') };
   __accounts.current = id;
   saveAccounts();
-  // Initialize empty state for new user
+  
   saveUserState();
   applyUserState();
 }
@@ -5605,7 +5605,7 @@ function signInAccount(id, password) {
 }
 
 function signOutAccount() {
-  // Keep user data; just unset current
+  
   try { saveUserState(); } catch(_) {}
   __accounts.current = null; saveAccounts();
 }
@@ -5619,7 +5619,7 @@ function deleteAccount(id) {
 }
 
 function getPersistableState() {
-  // Extract only user data, not runtime-only fields
+  
   return {
     settings: state.settings,
     files: state.files || {},
@@ -5634,7 +5634,7 @@ function getPersistableState() {
 function applyPersistedState(saved) {
   if (!saved) return;
   try {
-    // Merge shallow to avoid losing runtime scaffolding
+   
     state.settings = Object.assign({}, state.settings, saved.settings||{});
     state.files = Object.assign({}, saved.files||{});
     state.desktopIcons = Array.isArray(saved.desktopIcons) ? saved.desktopIcons.slice() : (state.desktopIcons||[]);
@@ -5660,39 +5660,39 @@ function loadUserState() {
 function applyUserState() {
   const data = loadUserState();
   if (data) { applyPersistedState(data); }
-  // Re-apply visuals and UI
+
   try { applyWallpaper(); } catch(_) {}
   try { applyAccent(); } catch(_) {}
   try { renderDesktopIcons(); } catch(_) {}
   try { if (typeof updateStartMenu === 'function') updateStartMenu(); } catch(_) {}
   try { renderWifiIndicator(); } catch(_) {}
-  // Ensure taskbar layout (centered/full) is re-applied after settings load
+
   try { applyTaskbarStyle(false); } catch(_) {}
-  // Reconfigure autohide wrapper for centered mode immediately and after a tick (avoid race with boot animations)
+ 
   try { setupTaskbarAutohide(); } catch(_) {}
   setTimeout(() => { try { setupTaskbarAutohide(); } catch(_) {} }, 0);
 }
 
 function startAutosave() {
   if (__autosaveTimer) { clearInterval(__autosaveTimer); __autosaveTimer = null; }
-  // Save every 2.5s while a user is signed in
+
   __autosaveTimer = setInterval(() => { if (getCurrentUser()) saveUserState(); }, 2500);
   window.addEventListener('beforeunload', () => { try { saveUserState(); } catch(_) {} });
 }
 
-// Initialize accounts early
+
 loadAccounts();
 applyUserState();
 startAutosave();
 
-// Danger: wipe all RT OS data
+
 function wipeAllData() {
   try {
-    // Remove per-user states
+    
     loadAccounts();
     const ids = Object.keys((__accounts && __accounts.users) || {});
     ids.forEach(id => { try { localStorage.removeItem('rtos.user.'+id+'.state'); } catch(_) {} });
-    // Remove accounts registry
+   
     try { localStorage.removeItem('rtos.accounts'); } catch(_) {}
   } catch(_) {}
 }
@@ -5709,9 +5709,9 @@ function wipeAccountByName(name) {
   return { ok:true };
 }
 
-// Installation removed — starting directly at boot
+// installation system removed for now, starting directly at boot.
 
-// Apply wallpaper
+// Apply the wallpaper
 const wallpaperEl = document.getElementById("wallpaperEl");
 function applyWallpaper() {
   try {
@@ -5728,20 +5728,20 @@ function applyWallpaper() {
 }
 applyWallpaper();
 
-// Accent application (dark-only base)
+// Accent (dark-only base)
 function applyAccent() {
   const color = state.settings.accentColor || '#5aa7ff';
   const root = document.documentElement;
   root.style.setProperty('--accent', color);
-  // Optional derived accents
+
   try {
-    // Slightly transparent accent for glows
+
     root.style.setProperty('--accent-weak', color + '33');
   } catch(_) {}
 }
 applyAccent();
 
-// Taskbar style application
+// Taskbar style
 function applyTaskbarStyle(animate = true) {
   try {
     const tb = document.getElementById('taskbar');
@@ -5752,15 +5752,15 @@ function applyTaskbarStyle(animate = true) {
     if (!tb) return;
     const centered = state.settings.taskbarStyle === 'centered';
     tb.classList.toggle('centered', centered);
-    // Apply inline layout guards to ensure compact width in centered mode
+
     if (centered) {
       tb.classList.add('centered');
-      // Enable autohide in centered mode so it overlays full-screen apps and hides when idle
+
       tb.classList.add('autohide');
       tb.classList.remove('hidden');
       tb.style.left = '';
       tb.style.right = '';
-      // Do NOT set inline transform; CSS .taskbar.centered controls transform for animation
+  
       tb.style.transform = '';
       tb.style.width = 'max-content';
       tb.style.maxWidth = 'calc(100vw - 24px)';
@@ -5779,7 +5779,7 @@ function applyTaskbarStyle(animate = true) {
       if (left) left.style.flex = '';
       if (right) right.style.flex = '';
     }
-    // Maintain compact search state in centered mode + placeholder per style
+
     try {
       if (searchEl) {
         if (!centered) {
@@ -5798,9 +5798,9 @@ function applyTaskbarStyle(animate = true) {
         }
       }
     } catch(_) {}
-    // Smooth child-only slide animation (no fade of the whole bar)
+
     if (animate) {
-      // Slide-in animation using child elements (stagger app icons only)
+
       tb.classList.add('dock-anim');
       if (mid) {
         let idx = 0;
@@ -5813,18 +5813,18 @@ function applyTaskbarStyle(animate = true) {
         }
       }, 360);
     }
-    // After style changes, refresh frames of already-open maximized windows
+  
     try { refreshMaximizedWindowsFrame(); } catch(_) {}
-    // Reconfigure autohide behavior for centered mode
+
     try { setupTaskbarAutohide(); } catch(_) {}
   } catch(_) {}
 }
 applyTaskbarStyle();
 
-// Keep taskbar hidden until desktop is revealed
+// Keep taskbar hidden before the desktop shows
 try { const __tbInit = document.getElementById('taskbar'); if (__tbInit) __tbInit.classList.add('preboot-hidden'); } catch(_) {}
 
-// Ensure taskbar is not constrained by desktop stacking contexts: move it under <body>
+
 function promoteTaskbarToBody() {
   try {
     const tb = document.getElementById('taskbar');
@@ -5835,7 +5835,7 @@ function promoteTaskbarToBody() {
 }
 promoteTaskbarToBody();
 
-// Resize any already-open maximized windows to the correct frame
+
 function refreshMaximizedWindowsFrame() {
   try {
     const tbEl = document.getElementById('taskbar');
@@ -5850,58 +5850,56 @@ function refreshMaximizedWindowsFrame() {
       w.style.top = insetY + 'px';
       w.style.width = width + 'px';
       w.style.height = height + 'px';
-      // Maintain no-elevate so we don't nudge while resizing to top edge
+    
       w.classList.add('no-elevate');
-      // Add a subtle frame switch animation
+  
       w.classList.remove('frame-switch');
-      void w.offsetWidth; // reflow to restart animation
+      void w.offsetWidth;
       w.classList.add('frame-switch');
       setTimeout(() => { try { w.classList.remove('frame-switch'); } catch(_) {} }, 280);
     });
   } catch(_) {}
 }
 
-// Keep centered layout consistent on viewport resize
+
 let _tbResizeTimer = null;
 window.addEventListener('resize', () => {
   if (_tbResizeTimer) cancelAnimationFrame(_tbResizeTimer);
   _tbResizeTimer = requestAnimationFrame(() => applyTaskbarStyle(false));
 });
 
-// Theming removed: OS runs in dark-only mode
 
 // Boot sequence (BIOS-like pre-OS screen)
 const boot = document.getElementById("boot"), progress = document.getElementById("progress");
 let booted = false;
 function runBoot() {
-  // If a restart requested to skip BIOS, go straight to desktop loader
+
   try {
     if (sessionStorage.getItem('rtos.skipBios') === '1') {
       sessionStorage.removeItem('rtos.skipBios');
-      // Ensure any BIOS overlay is not present
+
       const ov = document.getElementById('biosOverlay');
       if (ov) ov.remove();
-      // Show loader UI directly
+
       const boot = document.getElementById('boot');
       if (boot) boot.classList.remove('hidden');
-      // Fast path into finishBoot via the normal loader
+
       setTimeout(() => {
         try { finishBoot(); } catch(_) {}
       }, 400);
       return;
     }
   } catch(_) {}
-  // Hide the default boot UI while BIOS screen shows
+
   try { if (boot) boot.style.display = 'none'; } catch(_) {}
 
-  // Create BIOS-like overlay
+
   const existing = document.getElementById('biosOverlay');
   if (existing) existing.remove();
   const overlay = document.createElement('div');
   overlay.id = 'biosOverlay';
   overlay.style.cssText = 'position:fixed;inset:0;background:#000;color:#fff;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;font-size:14px;line-height:1.35;display:flex;flex-direction:column;justify-content:flex-start;padding:0;z-index:100000;';
 
-  // Header
   const header = document.createElement('div');
   header.style.cssText = 'padding:14px 18px 10px 18px;border-bottom:1px solid rgba(255,255,255,0.08)';
   const title = document.createElement('div');
@@ -5920,7 +5918,7 @@ function runBoot() {
   const bottom = document.createElement('div');
   bottom.style.cssText = 'display:flex;align-items:center;gap:8px;color:#cfcfcf;min-height:22px';
 
-  // Top-right quick hints like BIOS
+
   const hints = document.createElement('div');
   hints.style.cssText = 'position:absolute;top:10px;right:12px;color:#bbb;font-size:12px;text-align:right;opacity:.85';
   hints.innerHTML = 'Press F2 for Setup\nPress F12 for Boot Menu';
@@ -5934,7 +5932,7 @@ function runBoot() {
     top.appendChild(d);
   }
 
-  // Spinner + dots status (Windows-like vibe)
+  // Bios spinner thingy
   const spFrames = ['⠋','⠙','⠹','⠸','⠼','⠴','⠦','⠧','⠇','⠏'];
   let spIdx = 0, dot = 0, statusTimer = null;
   const statusText = document.createElement('div');
@@ -5954,14 +5952,14 @@ function runBoot() {
   overlay.appendChild(header);
   overlay.appendChild(contentWrap);
 
-  // Footer separator with hints text (bottom bar)
+
   const footer = document.createElement('div');
   footer.style.cssText = 'border-top:1px solid rgba(255,255,255,0.08);padding:8px 18px;color:#9aa0a6;font-size:12px;display:flex;align-items:center;';
   footer.textContent = 'RT Systems | Press F2 for Setup, F12 for Boot Menu';
   overlay.appendChild(footer);
   document.body.appendChild(overlay);
 
-  // BIOS info (generic, no brand names)
+  // Bios info (generic, no brand names)
   const biosLines = [
     'Generic Firmware Interface v1.0',
     'Copyright (C) Generic Systems',
@@ -5986,12 +5984,12 @@ function runBoot() {
       appendLine(biosLines[i++]);
       setTimeout(showNext, 800);
     } else {
-      // Transition to OS loader with spinner + dots (~6s)
+  
       appendLine('');
       startStatus('Loading operating system');
       setTimeout(() => {
         stopStatus();
-        // Intermediate handover: full-black screen with top blinking dot
+    
         overlay.remove();
         const handover = document.createElement('div');
         handover.style.cssText = 'position:fixed;inset:0;background:#000;z-index:100000;display:block;';
@@ -6003,25 +6001,25 @@ function runBoot() {
         let vis = false; const blink = setInterval(() => { vis = !vis; dot.style.opacity = vis ? '1' : '0'; }, 250);
         setTimeout(() => {
           clearInterval(blink);
-          // Reveal original boot UI with slide-up animation
+
           try {
             if (boot) {
               boot.style.display = '';
               boot.style.transition = 'transform 600ms cubic-bezier(0.22, 1, 0.36, 1), opacity 600ms ease';
               boot.style.transform = 'translateY(40px)';
               boot.style.opacity = '0';
-              // Force reflow
+         
               void boot.offsetHeight;
               boot.style.transform = 'translateY(0)';
               boot.style.opacity = '1';
             }
           } catch(_) {}
           handover.remove();
-          // Phase 2: original initializing progress
+      
           let p = 0;
           const statusEl = document.getElementById('bootStatus');
           const pctEl = document.getElementById('bootPct');
-          // Build a persistent spinner so it doesn't reset on text updates
+       
           let msgSpan = null;
           if (statusEl) {
             statusEl.innerHTML = '';
@@ -6043,7 +6041,7 @@ function runBoot() {
           function step(j) {
             if (booted) return;
             if (j >= steps.length) {
-              // Ensure UI reaches 100% and linger a touch before desktop
+           
               p = 100;
               if (progress) progress.style.width = '100%';
               if (pctEl) pctEl.textContent = '100%';
@@ -6064,7 +6062,7 @@ function runBoot() {
         }, 1500);
       }, 6000);
     }
-    // Autohide behavior setup
+
     try {
       setupTaskbarAutohide();
     } catch(_) {}
@@ -6073,21 +6071,21 @@ function runBoot() {
 }
 runBoot();
 
-  // Centered-mode Taskbar Autohide
+
   let __tbHoverZone = null, __tbHideTimer = null, __tbShowLock = false, __tbLastInteract = 0;
   function setupTaskbarAutohide() {
     const tb = document.getElementById('taskbar');
     if (!tb) return;
     const active = tb.classList.contains('centered') && tb.classList.contains('autohide');
-    // Only use wrapper in centered+autohide mode; keep non-centered as fixed separate bar
+
     let dw = tb.parentElement && tb.parentElement.classList && tb.parentElement.classList.contains('dock-wrap') ? tb.parentElement : null;
     if (active) {
       if (!dw) {
         const wrap = document.createElement('div');
         wrap.className = 'dock-wrap';
-        // keep autohide flag in sync for CSS
+ 
         wrap.classList.add('autohide');
-        // Reparent without visibility flicker
+    
         const parent = tb.parentNode;
         if (parent) {
           parent.insertBefore(wrap, tb);
@@ -6095,11 +6093,11 @@ runBoot();
         }
         dw = wrap;
       } else {
-        // ensure wrapper has autohide class
+     
         dw.classList.add('autohide');
       }
     } else if (dw) {
-      // unwrap if we are not in centered autohide mode
+    
       dw.classList.remove('hidden');
       if (dw.parentNode) {
         dw.parentNode.insertBefore(tb, dw);
@@ -6110,7 +6108,7 @@ runBoot();
     const hasAnyVisibleWindow = () => {
       const wins = Array.from(document.querySelectorAll('.window'));
       return wins.some(w => {
-        // Exclude closing windows
+       
         if (w.hasAttribute('data-closing')) return false;
         const st = getComputedStyle(w);
         return st.display !== 'none' && st.visibility !== 'hidden' && w.offsetParent !== null;
@@ -6125,8 +6123,6 @@ runBoot();
     const isVisible = (el) => {
       if (!el) return false;
       const style = getComputedStyle(el);
-      // offsetParent is null for position: fixed elements even when visible,
-      // so rely on computed style + bounding rect and DOM containment.
       if (style.display === 'none' || style.visibility === 'hidden' || parseFloat(style.opacity || '1') === 0) return false;
       const rect = el.getBoundingClientRect();
       const hasBox = rect.width > 0 && rect.height > 0;
@@ -6134,14 +6130,14 @@ runBoot();
       return inDoc && hasBox;
     };
 
-  // Slide the whole dock by toggling wrapper visibility (transform transition only)
+ 
   const setDockHidden = (hidden) => {
     if (!tb.classList.contains('autohide')) return;
     if (!dw) return;
     const isHidden = dw.classList.contains('hidden');
     if (hidden === isHidden) return;
     clearTimeout(__tbHideTimer); __tbHideTimer = null;
-    // Ensure transition runs even if toggled rapidly
+   
     void dw.offsetHeight;
     if (hidden) {
       dw.classList.add('hidden');
@@ -6149,7 +6145,7 @@ runBoot();
       dw.classList.remove('hidden');
     }
   };
-  // Ensure hover zone exists only when needed
+ 
   if (!active || !hasAnyVisibleWindow()) {
     if (__tbHoverZone && __tbHoverZone.parentNode) __tbHoverZone.parentNode.removeChild(__tbHoverZone);
     __tbHoverZone = null;
@@ -6169,7 +6165,7 @@ runBoot();
     __tbHoverZone = zone;
   }
   const updateMaximizedWindowsForTaskbarVisibility = () => {
-    // In overlay mode, do NOT shrink maximized windows when the taskbar shows.
+    
     const insetY = 0, insetX = 0;
     const width = Math.max(200, window.innerWidth - insetX*2);
     const fullH = Math.max(160, Math.round(window.innerHeight - insetY));
@@ -6186,15 +6182,14 @@ runBoot();
     if (!hasAnyVisibleWindow()) { setDockHidden(false); return; }
     setDockHidden(false);
     clearTimeout(__tbHideTimer); __tbHideTimer = null;
-    // Auto-hide again after a short idle (2.5s)
+   
     scheduleHide(2500);
-    // Do not resize maximized windows; taskbar overlays them
+    
   };
   const scheduleHide = (delay=2500) => {
     if (!tb.classList.contains('autohide')) return;
     clearTimeout(__tbHideTimer);
     __tbHideTimer = setTimeout(() => {
-      // Do not hide while hovering taskbar or interacting with search/results
       const overTb = tb.matches(':hover');
       const { startMenu, searchResults, wifiPanel } = getOverlays();
       const startOpen = !!(startMenu && (startMenu.classList.contains('show') || isVisible(startMenu)));
@@ -6203,28 +6198,25 @@ runBoot();
       const focusedInside = !!(document.activeElement && (tb.contains(document.activeElement) || (startMenu && startMenu.contains(document.activeElement)) || (searchResults && searchResults.contains(document.activeElement)) || (wifiPanel && wifiPanel.contains(document.activeElement))));
       const interacting = overTb || startOpen || searchOpen || wifiOpen || focusedInside;
       if (interacting) { markInteract(); scheduleHide(800); return; }
-      // Short grace after last interaction (~2.2s)
       const since = Date.now() - __tbLastInteract;
       if (since < 2200) { scheduleHide(2200 - since); return; }
       if (!hasAnyVisibleWindow()) { setDockHidden(false); return; }
       setDockHidden(true);
-      // No window resize here either; windows remain full height
     }, delay);
   };
   __tbHoverZone.onmouseenter = () => { markInteract(); show(); };
   __tbHoverZone.onmouseleave = () => { markInteract(); scheduleHide(360); };
   tb.onmouseenter = () => { markInteract(); show(); clearTimeout(__tbHideTimer); };
   tb.onmouseleave = () => { markInteract(); scheduleHide(300); };
-  // Nudge: when pointer is near bottom, reveal
   window.addEventListener('mousemove', (e) => {
     if (!tb.classList.contains('autohide')) return;
     if (e.clientY >= window.innerHeight - 36) { markInteract(); show(); }
   });
-  // Initial hide on idle after a short delay
+
   markInteract();
   scheduleHide(2500);
 
-  // Track interactions on overlays to extend grace period
+
   const { startMenu, searchResults, wifiPanel } = getOverlays();
   const watch = (el) => {
     if (!el) return;
@@ -6241,8 +6233,7 @@ runBoot();
   });
 }
 
-// Attempt to play the boot chime; if blocked, wait for first user interaction
-// Developer shortcut: Shift + D to skip BIOS/boot and enter desktop immediately
+// Shift + D to skip BIOS boot and enter desktop instantly
 window.addEventListener('keydown', (e) => {
   try {
     if ((e.key === 'D' || e.key === 'd') && e.shiftKey) {
@@ -6260,7 +6251,7 @@ function playBootChime() {
   audio.currentTime = 0;
   audio.volume = 0.7;
   const tryPlay = () => audio.play().catch((err) => {
-    // Autoplay likely blocked; wait for a one-time user gesture
+   
     const resume = () => {
       audio.play().catch(()=>{});
       window.removeEventListener('pointerdown', resume, { once: true });
@@ -6274,7 +6265,7 @@ function playBootChime() {
 
 // Shutdown sequence with chime and reboot prompt
 function playShutdownAndExit() {
-  // Grab audio before UI changes
+ 
   const audio = document.getElementById('shutdownChime');
 
   // Shutting down overlay (styled)
@@ -6358,23 +6349,22 @@ function finishBoot() {
       boot.style.display = "none";
       
       const di = document.getElementById('desktopInner');
-      // Build icons before revealing the desktop to avoid pre-animation flash
+      
       renderDesktopIcons();
-      // Stagger icons
+    
       document.querySelectorAll('#desktopIcons .icon').forEach((icon, index) => {
         icon.style.animationDelay = `${index * 0.08}s`;
       });
-      // Stagger taskbar app chips
+     
       document.querySelectorAll('.taskbar .task-mid > *').forEach((el, idx) => {
         el.style.animationDelay = `${0.15 + idx * 0.05}s`;
       });
-      // Add class to activate CSS animations
+      
       document.body.classList.add('boot-reveal');
       try { const tb = document.getElementById('taskbar'); if (tb) tb.classList.remove('preboot-hidden'); } catch(_) {}
       di.classList.add('desktop-appear');
       di.style.opacity = '1';
       updateStartMenu();
-      // Play boot chime when we reach the desktop
       playBootChime();
     }, 800);
   }, 350);
@@ -6391,7 +6381,6 @@ function updateTime() {
 }
 updateTime();
 setInterval(updateTime, 1000);
-
 // ----------------------
 // Wi‑Fi indicator + API
 // ----------------------
@@ -6406,7 +6395,6 @@ function renderWifiIndicator() {
   const colorOn = 'rgba(255,255,255,1)';
   const colorOff = 'rgba(255,255,255,0.35)';
   const colorConn = 'rgba(255,255,255,0.8)';
-  // Use global wifiBarsIcon; show slash when fully disconnected
   const iconSvg = connected
     ? wifiBarsIcon(level, colorOn, colorOff)
     : (connecting
@@ -6418,7 +6406,6 @@ function renderWifiIndicator() {
     : (connected ? `Wi‑Fi: ${profile? profile.ssid : 'Connected'}` : 'Wi‑Fi: Not connected');
 }
 
-// Keep quick Wi‑Fi panel in sync while connecting or after changes
 try {
   document.addEventListener('wifi-changed', () => {
     if (wifiPanelEl && typeof wifiPanelEl._updateWifiPanel === 'function') {
@@ -6427,11 +6414,9 @@ try {
   });
 } catch(_) {}
 
-// Render indicator on load so desktop shows initial state
 try { renderWifiIndicator(); } catch(_) {}
 
 function setWifi(networkId) {
-  // Immediate switch (internal use)
   if (!networkId) {
     state.wifi.connected = false;
     state.wifi.network = null;
@@ -6449,7 +6434,6 @@ function setWifi(networkId) {
 
 let wifiConnTicker = null;
 function connectWifi(networkId) {
-  // Simulate fixed 10s connecting delay with countdown
   state.wifi.connected = false;
   state.wifi.network = null;
   state.wifi.connecting = true;
@@ -6464,7 +6448,6 @@ function connectWifi(networkId) {
     try { document.dispatchEvent(new CustomEvent('wifi-changed', { detail: { ...state.wifi } })); } catch(_) {}
   }, 1000);
   setTimeout(() => {
-    // If not cancelled meanwhile
     if (state.wifi.connecting && state.wifi.target === networkId) {
       state.wifi.connected = true;
       state.wifi.network = networkId;
@@ -6596,22 +6579,20 @@ function renderWifiPanel(){
   wifiPanelEl = panel;
   updateContents();
   panel._updateWifiPanel = updateContents;
-  // Position panel near Wi‑Fi indicator (especially for centered dock)
+ 
   try {
     const anchor = document.getElementById('wifiIndicator');
     if (anchor) {
       const ar = anchor.getBoundingClientRect();
       const pr = panel.getBoundingClientRect();
-      // Place above taskbar; ensure no overlap with dock in either mode
       const tbEl = document.getElementById('taskbar');
       const centeredAuto = !!(tbEl && tbEl.classList.contains('centered') && tbEl.classList.contains('autohide'));
       const tbH = tbEl ? Math.round(tbEl.getBoundingClientRect().height) : 0;
-      const dockOffset = centeredAuto ? 10 : 0; // matches CSS bottom for centered.autohide
+      const dockOffset = centeredAuto ? 10 : 0; 
       const minBottom = Math.max(8, tbH + dockOffset + 8);
       const nearAnchor = Math.max(8, window.innerHeight - ar.top + 10);
       const bottom = Math.max(minBottom, nearAnchor);
       panel.style.bottom = bottom + 'px';
-      // Align right edge of panel with right edge of Wi‑Fi button, minimal clamp
       let desiredLeft = Math.round(ar.right - pr.width);
       desiredLeft = Math.min(Math.max(4, desiredLeft), window.innerWidth - pr.width - 4);
       panel.style.left = desiredLeft + 'px';
@@ -6620,7 +6601,6 @@ function renderWifiPanel(){
   } catch(_) {}
 }
 
-// Init Wi‑Fi indicator and click behavior -> open quick panel
 setTimeout(() => {
   renderWifiIndicator();
   const el = document.getElementById('wifiIndicator');
@@ -6629,7 +6609,6 @@ setTimeout(() => {
     el.addEventListener('click', toggle);
     el.addEventListener('keydown', (e) => { if (e.key==='Enter' || e.key===' ') { e.preventDefault(); toggle(); }});
   }
-  // Hook compact search expand/collapse
   const searchEl = document.getElementById('taskbarSearch');
   const searchBtn = document.getElementById('taskbarSearchBtn');
   if (searchEl) {
@@ -6638,7 +6617,6 @@ setTimeout(() => {
       const tb = document.getElementById('taskbar');
       const centered = tb && tb.classList.contains('centered');
       if (!centered) {
-        // Full-width mode: never keep stale text when not focused
         if (document.activeElement !== searchEl && !(typeof __searchInteracting !== 'undefined' && __searchInteracting)) {
           try { searchEl.value = ''; if (typeof hideSearch === 'function') hideSearch(true); } catch(_) {}
         }
@@ -6663,7 +6641,6 @@ setTimeout(() => {
       if (typeof __searchInteracting !== 'undefined' && __searchInteracting) { setTimeout(()=>update(), 0); return; }
       const tb = document.getElementById('taskbar');
       const centered = tb && tb.classList.contains('centered');
-      // Always clear value and hide results on blur
       try { searchEl.value = ''; if (typeof hideSearch === 'function') hideSearch(true); } catch(_) {}
       if (centered) {
         searchEl.classList.remove('expanded');
@@ -6680,7 +6657,6 @@ setTimeout(() => {
     });
     if (searchBtn) {
       const open = () => {
-        // Expand compact input and show the full search chrome like non-centered mode
         searchEl.classList.add('expanded');
         try { if (typeof renderSearchChrome === 'function') renderSearchChrome(); } catch(_) {}
         if (searchResults) {
@@ -6697,7 +6673,7 @@ setTimeout(() => {
   }
 }, 0);
 
-// In-OS Power confirmation dialog
+// Power confirmation Stuff
 function openPowerDialog() {
   const existing = document.getElementById('powerOverlay');
   if (existing) existing.remove();
@@ -6725,7 +6701,7 @@ function openPowerDialog() {
   document.getElementById('btnConfirmShutdown').onclick = () => { ov.remove(); playShutdownAndExit(); };
 }
 
-// Restart confirmation dialog
+// Restart Confirmation Stuff...
 function openRestartDialog() {
   const existing = document.getElementById('powerOverlay');
   if (existing) existing.remove();
@@ -6753,14 +6729,13 @@ function openRestartDialog() {
   document.getElementById('btnConfirmRestart').onclick = () => { ov.remove(); playRestartSequence(); };
 }
 
-// Close all apps and clean taskbar in background
+// Close all of the apps when doing it so
 function closeAllApps() {
   try {
-    // Remove all window DOMs
+ 
     document.querySelectorAll('.window').forEach(w => w.remove());
   } catch(_) {}
   try {
-    // Remove taskbar icons and clear openWindows registry
     if (state && state.openWindows) {
       Object.keys(state.openWindows).forEach(appId => {
         try { if (typeof removeTaskIcon === 'function') removeTaskIcon(appId); } catch(_) {}
@@ -6772,7 +6747,7 @@ function closeAllApps() {
   try { const cm = document.getElementById('contextMenu'); if (cm) cm.style.display = 'none'; } catch(_) {}
 }
 
-// Restart overlay + automatic reboot
+// Restart overlay
 function playRestartSequence() {
   const audio = document.getElementById('shutdownChime');
 
@@ -6812,7 +6787,7 @@ function playRestartSequence() {
   }
 }
 
-// Compact power menu (Windows-like) with Power and Restart
+// Power Menuuu
 let powerMenuEl = null;
 function closePowerMenu(){ if(powerMenuEl){ powerMenuEl.remove(); powerMenuEl=null; document.removeEventListener('click', handlePowerOutside, false);} }
 function handlePowerOutside(e){ if(powerMenuEl && !powerMenuEl.contains(e.target) && !e.target.closest('#powerBtn')) closePowerMenu(); }
@@ -6835,7 +6810,6 @@ function openPowerMenu(){
   document.body.appendChild(menu);
   powerMenuEl = menu;
 
-  // Try to align under Start menu if visible
   try {
     const sm = document.getElementById('startMenu');
     if (sm && sm.classList.contains('show')) {
@@ -6848,13 +6822,11 @@ function openPowerMenu(){
   document.getElementById('pmShutdown').onclick = () => { closePowerMenu(); hideStartMenuAnimated(); openPowerDialog(); };
   document.getElementById('pmRestart').onclick = () => { closePowerMenu(); hideStartMenuAnimated(); openRestartDialog(); };
   setTimeout(()=>{ document.addEventListener('click', handlePowerOutside, false); }, 0);
-  // Close on Escape
   menu.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePowerMenu(); });
 }
 
 // Start menu
 const startBtn = document.getElementById("startBtn"), startMenu = document.getElementById("startMenu");
-// Start button: prevent selection/copy and add hover class toggles
 if (startBtn) {
   startBtn.setAttribute('draggable', 'false');
   startBtn.addEventListener('selectstart', (e) => e.preventDefault());
@@ -6893,7 +6865,6 @@ function hideStartMenuAnimated() {
 }
 
 function openStartMenuRobust() {
-  // Cancel any pending hide animation/timer and show immediately
   if (startMenu.classList.contains('hiding') || startHideInProgress) {
     startMenu.classList.remove('hiding');
     startHideInProgress = false;
@@ -6928,7 +6899,6 @@ document.addEventListener("click", (ev) => {
   }
 });
 
-// Update start menu based on icon style
 function updateStartMenu() {
   const startGrid = document.querySelector('.start-grid');
   startGrid.innerHTML = '';
@@ -6958,7 +6928,6 @@ function updateStartMenu() {
   startGrid.appendChild(powerBtn);
 }
 
-// Render desktop icons based on state
 function renderDesktopIcons() {
   const desktopIconsEl = document.getElementById("desktopIcons");
   desktopIconsEl.innerHTML = "";
@@ -6988,10 +6957,9 @@ function renderDesktopIcons() {
     label.textContent = app.name;
     icon.appendChild(label);
     
-    // Click animation then open
     const runClick = () => {
       icon.classList.remove('clicked');
-      void icon.offsetWidth; // reflow to restart animation
+      void icon.offsetWidth;
       icon.classList.add('clicked');
       const openLater = setTimeout(() => openApp(appId), 140);
       icon.addEventListener('animationend', () => {
@@ -7013,7 +6981,6 @@ function renderDesktopIcons() {
     desktopIconsEl.appendChild(icon);
   });
 
-  // Render file shortcuts (e.g., .nt notes)
   (state.desktopShortcuts || []).forEach((fileId, sIndex) => {
     const f = state.files && state.files[fileId];
     if (!f) return;
@@ -7037,21 +7004,18 @@ function renderDesktopIcons() {
   });
 }
 
-// Context menu handling
+// Context menu handlmento
 const contextMenu = document.getElementById("contextMenu");
 let currentContextApp = null;
-let currentShortcutFileId = null; // when right-clicking a desktop file shortcut (e.g., .nt)
+let currentShortcutFileId = null;
 
 function showContextMenu(e, appId = null) {
   currentContextApp = appId;
   currentShortcutFileId = null;
   
-  // Show first to measure, then clamp within viewport and above taskbar
   contextMenu.style.display = "block";
-  // Initial placement near cursor
   contextMenu.style.left = `${e.clientX}px`;
   contextMenu.style.top = `${e.clientY}px`;
-  // Clamp to viewport
   try {
     const r = contextMenu.getBoundingClientRect();
     const vw = window.innerWidth, vh = window.innerHeight;
@@ -7059,7 +7023,6 @@ function showContextMenu(e, appId = null) {
     const centeredAuto = !!(tbEl && tbEl.classList.contains('centered') && tbEl.classList.contains('autohide'));
     const tbH = (!tbEl ? 0 : (centeredAuto ? 0 : tbEl.offsetHeight));
     let left = e.clientX, top = e.clientY;
-    // Keep fully on screen
     if (left + r.width > vw - 6) left = Math.max(6, vw - r.width - 6);
     if (top + r.height > vh - tbH - 6) top = Math.max(6, vh - tbH - r.height - 6);
     if (top < 6) top = 6;
@@ -7080,12 +7043,10 @@ function showContextMenu(e, appId = null) {
     document.getElementById("cmAppProperties").style.display = "block";
     if (removeShortcutEl) removeShortcutEl.style.display = 'none';
   } else {
-    // Check if right-click came from a desktop file shortcut icon
     const iconEl = e.target && e.target.closest ? e.target.closest('#desktopIcons .icon') : null;
     const fileId = iconEl && iconEl.dataset ? iconEl.dataset.fileId : null;
     if (fileId && (state.desktopShortcuts||[]).includes(fileId)) {
       currentShortcutFileId = fileId;
-      // Hide app add/remove; show remove shortcut
       document.getElementById("cmAddToDesktop").style.display = "none";
       document.getElementById("cmRemoveFromDesktop").style.display = "none";
       document.getElementById("cmAppProperties").style.display = "none";
@@ -7139,7 +7100,7 @@ function hideContextMenu() {
   currentShortcutFileId = null;
 }
 
-// Context menu actions
+// The context menu actions
 document.getElementById("cmAddToDesktop").onclick = () => {
   if (currentContextApp && !state.desktopIcons.includes(currentContextApp)) {
     state.desktopIcons.push(currentContextApp);
@@ -7195,13 +7156,12 @@ document.getElementById('desktop').addEventListener('contextmenu', (e) => {
   }
 });
 
-/* utility to generate consistent app IDs */
 function makeAppId(base) {
   const b = (base || "app").toString().toLowerCase().replace(/\s+/g,'-').replace(/[^a-z0-9\-]/g,'');
   return b + '-' + Date.now().toString(36).slice(-5);
 }
 
-/* CREATE WINDOW (enhanced with animations): returns appId and window element */
+
 function createWindow(contentNode, opts={}) {
   const appId = opts.id || (opts.title ? opts.title.toLowerCase().replace(/\s+/g,'-') + '-' + Math.random().toString(36).slice(2,6) : makeAppId('app'));
   if (Object.keys(state.openWindows).length >= MAX_WINDOWS && !state.openWindows[appId]) return alert("Max windows open!");
@@ -7297,7 +7257,6 @@ function createWindow(contentNode, opts={}) {
   win.append(titleBar, body); 
   desktop.appendChild(win);
 
-  // Add custom resize handles on all sides/corners for smoother resizing
   (function addResizeHandles(){
     const mk = (cls) => { const d = document.createElement('div'); d.className = `win-resize-handle ${cls}`; d.setAttribute('aria-hidden','true'); return d; };
     const handles = [
@@ -7354,7 +7313,6 @@ function createWindow(contentNode, opts={}) {
         height = Math.max(minH, startH + (startT - newTop));
         top = newTop;
       }
-      // Schedule DOM writes in rAF for smoothness
       nextFrame = { left, top, width, height };
       if (!raf) raf = requestAnimationFrame(() => {
         raf = 0;
@@ -7372,7 +7330,6 @@ function createWindow(contentNode, opts={}) {
       if (!resizing) return;
       resizing = false; dir = '';
       document.body.style.userSelect = '';
-      // Remove no-elevate if window not pinned to top
       const topPx = parseInt(win.style.top || '0', 10) || 0;
       if (topPx > 0 && win.dataset.maxed != '1') { win.classList.remove('no-elevate'); }
     }
@@ -7382,9 +7339,9 @@ function createWindow(contentNode, opts={}) {
     window.addEventListener('mouseup', onUp);
   })();
 
-  // Allow opening animation even for maximized windows
+
   win.dataset.opening = "1";
-  // Remove the opening flag after the animation finishes
+
   setTimeout(() => {
     delete win.dataset.opening;
   }, 190);
@@ -7410,7 +7367,6 @@ function createWindow(contentNode, opts={}) {
     if (!dragging) return;
     let nx = e.clientX - dx, ny = e.clientY - dy;
     const W = window.innerWidth, H = window.innerHeight;
-    // In centered autohide overlay mode, allow windows to extend to bottom (taskbar overlays)
     const tbEl = document.getElementById('taskbar');
     const centeredAuto = !!(tbEl && tbEl.classList.contains('centered') && tbEl.classList.contains('autohide'));
     const tb = centeredAuto ? 0 : (tbEl ? tbEl.offsetHeight : 0);
@@ -7429,17 +7385,16 @@ function createWindow(contentNode, opts={}) {
   btnClose.onclick = (e) => {
     e.stopPropagation();
     if (win.dataset.closing === "1") return; // already closing
-    // Play reverse pop animation then remove
+   
     win.dataset.closing = "1";
-    // Force reflow to ensure the reverse animation starts reliably
+    
     void win.offsetWidth;
     win.classList.add('closing');
-    // Remove task icon and tracking just before removal completes
+   
     removeTaskIcon(appId);
     delete state.openWindows[appId];
     const done = () => { win.removeEventListener('animationend', done); win.remove(); };
     win.addEventListener('animationend', done, { once: true });
-    // Safety in case animationend is missed
     setTimeout(done, 500);
   };
   
@@ -7479,7 +7434,6 @@ function createWindow(contentNode, opts={}) {
 
   win.addEventListener('mousedown', () => focusWindow(win));
 
-  // Ensure manual resizes never push window under the taskbar
   try {
     const ro = new ResizeObserver(() => {
       if (win.dataset.maxed == "1") return;
@@ -7510,13 +7464,11 @@ function createWindow(contentNode, opts={}) {
 
 function focusWindow(win) {
   if (!win) return;
-  // Cap z-index so it never surpasses UI layers (taskbar/start/search)
   state.z = Math.min(++state.z, 89998);
   win.style.zIndex = state.z;
   document.querySelectorAll(".window").forEach(w => w.classList.remove("focus"));
   win.classList.add("focus");
   if (win.style.display !== "none") win.dataset.minimized = "";
-  // If maximized or pinned to the very top, avoid upward elevation transform (prevents top-corner clipping)
   const topPx = parseInt(win.style.top || '0', 10) || 0;
   if (win.dataset.maxed == "1" || topPx <= 0) {
     win.classList.add('no-elevate');
@@ -7561,7 +7513,6 @@ window.addEventListener("resize", () => {
       win.style.width = f.width + "px"; 
       win.style.height = f.height + "px";
     } else {
-      // Keep normal windows within viewport and above taskbar
       const tbEl = document.getElementById('taskbar');
       const centeredAuto = !!(tbEl && tbEl.classList.contains('centered') && tbEl.classList.contains('autohide'));
       const tb = centeredAuto ? 0 : (tbEl ? tbEl.offsetHeight : 0);
@@ -7578,18 +7529,15 @@ window.addEventListener("resize", () => {
   try { if (wifiPanelEl) { const tmp = wifiPanelEl; wifiPanelEl = null; tmp.remove(); renderWifiPanel(); } } catch(_) {}
 });
 
-// Position Start menu near Start button, clamped within viewport
 function positionStartMenu() {
   const tb = document.getElementById('taskbar');
   if (!tb || !startBtn || !startMenu) return;
   if (!startMenu.classList.contains('show')) return;
   const br = startBtn.getBoundingClientRect();
   const mr = startMenu.getBoundingClientRect();
-  // Place above taskbar with small gap
   const tbRect = tb.getBoundingClientRect();
   const bottom = Math.max(12, window.innerHeight - tbRect.top + 12);
   startMenu.style.bottom = bottom + 'px';
-  // Align left edge to start button, but clamp to viewport
   const left = Math.min(Math.max(12, br.left), window.innerWidth - mr.width - 12);
   startMenu.style.left = left + 'px';
 }
@@ -7608,10 +7556,8 @@ function openApp(app, opts) {
   if (app === "media") createWindow(mediaApp(), {title:"Media Player", id:"media"});
 }
 
-// Helper: open or reuse Media Player with a given file object from Files app
 function openMediaWithFile(file) {
   try {
-    // If media window exists, bring it to front and send event
     const existing = state.openWindows["media"];
     if (existing) {
       existing.style.display = "flex";
@@ -7621,7 +7567,6 @@ function openMediaWithFile(file) {
       document.dispatchEvent(ev);
       return;
     }
-    // Otherwise create a new media window seeded with the file
     const w = createWindow(mediaApp({file}), { title: 'Media Player', id: 'media' });
     bringToFront(w);
   } catch (e) {
@@ -7629,7 +7574,6 @@ function openMediaWithFile(file) {
   }
 }
 
-// Helper: open or reuse Notepad with a given .nt file object from Files app
 function openNoteWithFile(file, fileId) {
   try {
     const wins = document.querySelectorAll('.window');
@@ -7665,13 +7609,12 @@ const SEARCH_APPS = [
 ];
 
 const taskbarSearch = document.getElementById("taskbarSearch"), searchResults = document.getElementById("searchResults");
-let __searchInteracting = false; // guard while clicking inside results
+let __searchInteracting = false;
 
 function hideSearch(clear=false){
   if (searchResults) searchResults.style.display = "none";
   if (taskbarSearch) {
     if (clear) taskbarSearch.value = "";
-    // In centered mode, always collapse back to icon-only when not interacting
     try {
       const tb = document.getElementById('taskbar');
       const centered = tb && tb.classList.contains('centered');
@@ -7680,7 +7623,6 @@ function hideSearch(clear=false){
         taskbarSearch.placeholder = 'Search';
         taskbarSearch.blur();
       } else {
-        // Full-width keeps long placeholder
         taskbarSearch.placeholder = 'Search RT OS, apps or web...';
       }
     } catch(_) {}
@@ -7691,7 +7633,6 @@ if (taskbarSearch) {
   taskbarSearch.addEventListener('focus', () => {
     if (startMenu && startMenu.classList.contains('show')) hideStartMenuAnimated();
   });
-  // mark interactions inside results to prevent blur-clear while clicking a result
   if (searchResults) {
     const arm = () => { __searchInteracting = true; setTimeout(()=>{ __searchInteracting = false; }, 260); };
     searchResults.addEventListener('mousedown', arm, {capture:true});
@@ -7712,7 +7653,7 @@ if (taskbarSearch) {
   });
 }
 
-// Build a sticky header with a back arrow inside the search popup
+
 function buildSearchHeader(titleText = 'Search'){
   const header = document.createElement('div');
   header.className = 'search-header';
@@ -7741,16 +7682,14 @@ function renderSearchChrome(hintText = 'Type to search apps...'){
 let uiSwitchGuardUntil = 0;
 
 function switchStartToSearch(){
-  // Slide hint on Start menu and instantly switch to the search side
   if (startMenu){
     uiSwitchGuardUntil = Date.now() + 260;
     startMenu.classList.add('to-search');
-    // Short hint, then instantly hide Start and show search
+
     setTimeout(() => {
       startMenu.classList.remove('to-search','show','hiding');
       startMenu.setAttribute('aria-hidden','true');
       if (startBtn) startBtn.classList.remove('active','pop');
-      // Show search chrome and focus the real search input
       if (searchResults){
         renderSearchChrome();
         searchResults.style.display = 'block';
@@ -7762,7 +7701,6 @@ function switchStartToSearch(){
 }
 
 function switchSearchToStart(){
-  // Hide search instantly and show Start
   uiSwitchGuardUntil = Date.now() + 260;
   hideSearch(true);
   if (startMenu){
@@ -7781,7 +7719,6 @@ function switchSearchToStart(){
 function positionSearchResults() {
   if (!taskbarSearch || !searchResults) return;
   const r = taskbarSearch.getBoundingClientRect();
-  // Ensure we know panel width for centering
   const prevDisplay = searchResults.style.display;
   const prevVis = searchResults.style.visibility;
   if (getComputedStyle(searchResults).display === 'none') {
@@ -7789,17 +7726,16 @@ function positionSearchResults() {
     searchResults.style.display = 'block';
   }
   const panelW = searchResults.offsetWidth || 320;
-  // Restore visibility state if we temporarily changed it
   if (prevDisplay === '' || prevDisplay === 'none') {
     searchResults.style.display = prevDisplay || 'none';
     searchResults.style.visibility = prevVis || '';
   }
-  // Compute centered left: center under the search box
+
   let left = Math.round(r.left + (r.width - panelW) / 2);
-  // Snap to 2px grid for crisp alignment with Start menu panel
+  
   left = left - (left % 2);
   searchResults.style.left = left + 'px';
-  // Use Start menu's configured bottom if available to match vertical baseline
+  
   let smBottom = 100;
   const sm = document.getElementById('startMenu');
   if (sm) {
@@ -7813,19 +7749,17 @@ function positionSearchResults() {
 taskbarSearch.oninput = () => {
   const q = taskbarSearch.value.trim().toLowerCase();
   searchResults.innerHTML = "";
-  // Always include back header
   searchResults.appendChild(buildSearchHeader('Search'));
   if (!q) {
     const hint = document.createElement('div');
     hint.className = 'search-hint';
     hint.textContent = 'Type to search apps...';
     searchResults.appendChild(hint);
-    // Show chrome even with no query
     searchResults.style.display = "block";
     positionSearchResults();
     return;
   }
-  // Ensure Start menu is closed while searching
+
   if (startMenu && startMenu.classList.contains('show')) hideStartMenuAnimated();
   
   let found = SEARCH_APPS.filter(x => 
@@ -7854,25 +7788,23 @@ taskbarSearch.oninput = () => {
     };
     searchResults.appendChild(r);
   });
-  // Show, then position to allow exact width for centering
   searchResults.style.display = "block";
   positionSearchResults();
 };
 
 document.body.addEventListener("click", e => {
-  // During UI switch animations, ignore stray body clicks
   if (Date.now() < uiSwitchGuardUntil) return;
   if (e.target !== taskbarSearch && !searchResults.contains(e.target)) {
     hideSearch(false);
   }
 });
 
-// Reposition on resize in case of layout changes
+
 window.addEventListener('resize', () => {
   if (searchResults && searchResults.style.display === 'block') positionSearchResults();
 });
 
-// Inject a fake Start menu search row (no typing) and wire instant switching
+
 setTimeout(()=>{
   const sm = document.getElementById('startMenu');
   if (sm && !sm.querySelector('.start-search')){
@@ -7895,7 +7827,6 @@ function browserApp(opts={}) {
   
   const urlBar = document.createElement("div");
   urlBar.className = "browser-url-bar";
-  // Navigation toolbar (Back, Forward, Restart)
   const navBar = document.createElement('div');
   navBar.style.display = 'flex';
   navBar.style.alignItems = 'center';
@@ -7917,7 +7848,6 @@ function browserApp(opts={}) {
   }
   const btnBack = makeIconButton('Back', `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M15 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
   const btnForward = makeIconButton('Forward', `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`);
-  // Clean circular restart icon: tuned gap & arrow alignment
   const btnRestart = makeIconButton('Restart', `
     <svg width="16" height="16" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
       <g transform="rotate(-10 12 12)">
@@ -7961,35 +7891,32 @@ function browserApp(opts={}) {
   notice.style.cssText = 'position:absolute;inset:0;z-index:100;display:none;align-items:center;justify-content:center;pointer-events:none;';
 
   let jitterAttached = false;
-  // Loading state/timers to avoid idle animations
   let isLoading = false;
   let tickTimeoutId = null;
   let wobbleTimeoutId = null;
-  function attachJitterListeners(){ jitterAttached = true; /* disabled jitter to avoid shutter */ }
+  function attachJitterListeners(){ jitterAttached = true; }
   attachJitterListeners();
   
   function noticeSpinner(on){
     return on ? `<svg width=\"64\" height=\"64\" viewBox=\"0 0 50 50\" style=\"display:block\">\n      <circle cx=\"25\" cy=\"25\" r=\"18\" stroke=\"#fff\" stroke-width=\"6\" fill=\"none\" stroke-linecap=\"round\" stroke-dasharray=\"90 60\">\n        <animateTransform attributeName=\"transform\" type=\"rotate\" from=\"0 25 25\" to=\"360 25 25\" dur=\"0.9s\" repeatCount=\"indefinite\"/>\n      </circle>\n    </svg>` : '';
   }
 
-  // mount container with notice and iframe
   iframeContainer.append(notice, iframe);
   root.append(urlBar, loadingBar, iframeContainer);
   
-  // Load URL function
-  let loadSeq = 0; // increments per navigation to prevent tick races
+  // Load the URL
+  let loadSeq = 0; 
   function loadUrl(url) {
     if (!url) return;
     const isConnected = !!(state.wifi && state.wifi.connected);
     if (!isConnected) {
-      // Block navigation when offline/connecting; show centered overlay
       loadingBar.style.display = 'none';
       iframe.src = 'about:blank';
       updateNotice();
       return;
     }
     
-    // Add https:// if missing
+    // Add https:// if its missing it
     if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('about:')) {
       url = 'https://' + url;
       urlInput.value = url;
@@ -7997,7 +7924,6 @@ function browserApp(opts={}) {
     // History management
     currentUrl = url;
     if (!navigatingViaHistory) {
-      // Truncate forward stack then push
       if (historyIndex < history.length - 1) history.splice(historyIndex + 1);
       history.push(url);
       historyIndex = history.length - 1;
@@ -8007,25 +7933,21 @@ function browserApp(opts={}) {
     const terrible = netId === 'terrible-hotstop';
     const mySeq = ++loadSeq;
     
-    // Show loading bar with progression
+    // Loading Bar 
     loadingBar.style.display = "block";
-    const targetCap = terrible ? 92 : 99; // terrible stops earlier before onload
+    const targetCap = terrible ? 92 : 99; 
     let progress = terrible ? 6 : 25;
     loadingBar.style.width = progress + "%";
 
     function startLoad() {
-      if (mySeq !== loadSeq) return; // canceled by a newer navigation
-      // Always attempt to load, but on terrible hotspot we might not fully complete UI-wise
-      const partialMode = terrible && Math.random() < 0.35; // sometimes never fully completes visually
-      // Set iframe source
+      if (mySeq !== loadSeq) return; 
+      const partialMode = terrible && Math.random() < 0.35; 
       iframe.src = url;
       
-      // Finish when iframe loads
       iframe.onload = () => {
         if (mySeq !== loadSeq) return;
         isLoading = false;
         if (partialMode) {
-          // Keep bar around 90% and visible, no wobble to avoid shutter
           let stuck = 90;
           loadingBar.style.width = stuck + '%';
           loadingBar.style.display = 'block';
@@ -8041,7 +7963,6 @@ function browserApp(opts={}) {
       iframe.onerror = () => {
         if (mySeq !== loadSeq) return;
         isLoading = false;
-        // On error, keep bar visible briefly then hide (no alerts/popups)
         loadingBar.style.width = terrible ? '88%' : '100%';
         setTimeout(() => { if (mySeq === loadSeq) loadingBar.style.display = 'none'; }, terrible ? 1400 : 400);
       };
@@ -8049,23 +7970,21 @@ function browserApp(opts={}) {
 
     function tick() {
       if (mySeq !== loadSeq) return; // canceled
-      if (!isLoading) return; // do not animate when idle
+      if (!isLoading) return; 
       if (progress < targetCap) {
-        const step = terrible ? (0.3 + Math.random()*1.0) : 6.5; // larger jitter/smaller increments on terrible
+        const step = terrible ? (0.3 + Math.random()*1.0) : 6.5;
         progress = Math.min(targetCap, progress + step);
         loadingBar.style.width = progress + '%';
-        const delay = terrible ? (380 + Math.random()*680) : 70; // jitter only on terrible
+        const delay = terrible ? (380 + Math.random()*680) : 70; 
         tickTimeoutId = setTimeout(tick, delay);
       }
     }
 
-    // Fallback if onload never fires (blocked embeds):
     const fallbackMs = terrible ? 10000 : 2500;
     const thisSeq = mySeq;
     setTimeout(() => {
       if (thisSeq !== loadSeq) return;
       if (terrible) {
-        // On terrible, keep it visually stuck near 90% (do not force-complete)
         loadingBar.style.display = 'block';
         loadingBar.style.width = '89%';
       } else {
@@ -8096,8 +8015,6 @@ function browserApp(opts={}) {
     notice.style.display = 'flex';
   }
 
-  // Event listeners
-  // In-app navigation state
   const history = [];
   let historyIndex = -1;
   let navigatingViaHistory = false;
@@ -8130,9 +8047,8 @@ function browserApp(opts={}) {
     }
   };
   btnRestart.onclick = () => {
-    // Reload current URL and rely on the loading bar animation (no popup)
     const u = currentUrl || urlInput.value;
-    navigatingViaHistory = true; // do not push a new history entry
+    navigatingViaHistory = true;
     loadUrl(u);
     updateNavButtons();
   };
@@ -8145,10 +8061,8 @@ function browserApp(opts={}) {
     }
   });
   
-  // Load initial URL
   setTimeout(() => loadUrl(urlInput.value), 100);
 
-  // React to Wi‑Fi state changes
   let autoLoadedAfterConnect = false;
   const wifiHandler = () => {
     const isConnected = !!(state.wifi && state.wifi.connected);
@@ -8162,7 +8076,6 @@ function browserApp(opts={}) {
     }
     updateNotice();
     updateNavButtons();
-    // Auto-load once after regaining connection
     if (isConnected && !autoLoadedAfterConnect) {
       autoLoadedAfterConnect = true;
       if (iframe.src === 'about:blank' || !iframe.src) {
@@ -8172,7 +8085,6 @@ function browserApp(opts={}) {
     }
   };
   document.addEventListener('wifi-changed', wifiHandler);
-  // Ensure initial state
   wifiHandler();
   
   return root;
@@ -8256,19 +8168,16 @@ function mediaApp(opts = {}) {
     }
   };
 
-  // If opened with a file from Files app, load it
   if (opts && opts.file) {
     loadFromFileObject(opts.file);
   }
 
-  // Listen for future open requests if window is reused
   const onOpenMedia = (e) => {
     if (e && e.detail && e.detail.file) {
       loadFromFileObject(e.detail.file);
     }
   };
   document.addEventListener('rt-open-media', onOpenMedia);
-  // Clean up when the window is closed: observer to remove listener when DOM node removed
   const observer = new MutationObserver(() => {
     if (!root.isConnected) {
       document.removeEventListener('rt-open-media', onOpenMedia);
@@ -8321,13 +8230,12 @@ function settingsApp(opts) {
   function renderAccountsPage() {
     page.innerHTML = '';
     header.innerHTML = '';
-    // Header
     const hero = document.createElement('div'); hero.className = 'settings-hero';
     const logo = document.createElement('div'); logo.className = 'settings-hero-logo'; logo.textContent = '👤';
     const heroText = document.createElement('div'); heroText.className = 'settings-hero-text';
     const heroTitle = document.createElement('div'); heroTitle.className = 'settings-hero-title'; heroTitle.textContent = 'RT Accounts';
     const heroSub = document.createElement('div'); heroSub.className = 'settings-h2'; heroSub.textContent = 'Create or sign in to save your settings and files across restarts.';
-    // Match other sections: lighter, not bold
+
     heroSub.style.fontWeight = '400';
     heroSub.style.color = 'var(--muted)';
     heroText.append(heroTitle, heroSub);
@@ -8352,7 +8260,7 @@ function settingsApp(opts) {
     }
     status.append(statusRow);
 
-    // Create / Sign-in card
+    //Sign in card
     const create = document.createElement('div'); create.className = 'settings-section'; create.style.padding = '14px';
     const createTitle = document.createElement('div'); createTitle.className = 'settings-h1'; createTitle.textContent = 'Create or sign in';
     const form = document.createElement('div'); form.style.display = 'grid'; form.style.gridTemplateColumns = '180px 1fr'; form.style.gap = '10px 14px'; form.style.alignItems = 'center';
@@ -8372,9 +8280,6 @@ function settingsApp(opts) {
     form.append(lblName, nameInp, lblPass, passWrap, lblAvatar, avInp, lblActions, actions);
     create.append(createTitle, form);
 
-    // Remove separate password warning card; inline hint under the password field is sufficient
-
-    // Input styling to match OS
     const styleInput = (el) => {
       el.style.background = 'rgba(255,255,255,0.04)';
       el.style.border = '1px solid rgba(255,255,255,0.08)';
@@ -8447,19 +8352,15 @@ function settingsApp(opts) {
       });
     }
 
-    // Sign out
-    // Always allow creating another account even when signed in
     page.append(status, create, list);
   }
 
-  // Track current active tab to avoid unintended switches during Wi‑Fi changes
+
   let currentTab = 'info';
-  // Keep a reference to network wifi-changed handler to remove cleanly
   let wifiChangeHandlerRef = null;
 
   function renderInfoPage() {
     page.innerHTML = '';
-    // Hero header
     header.innerHTML = '';
     const hero = document.createElement('div'); hero.className = 'settings-hero';
     const logo = document.createElement('div'); logo.className = 'settings-hero-logo'; logo.textContent = 'RT';
@@ -8500,7 +8401,7 @@ function settingsApp(opts) {
     hero.append(logo, heroText);
     header.append(hero);
 
-    // Wallpaper grid (scrollable) + Stock default card + Upload card
+    // Wallpaper grid (scrollable)
     const wScroll = document.createElement('div');
     wScroll.style.maxHeight = 'none';
     wScroll.style.overflowY = 'visible';
@@ -8510,7 +8411,6 @@ function settingsApp(opts) {
     wList.style.display = 'flex';
     wList.style.flexWrap = 'wrap';
     wList.style.gap = '12px';
-    // Stock default card
     const cStock = document.createElement('div'); cStock.className = 'white-corners'; cStock.style.width = '160px'; cStock.style.padding = '10px'; cStock.style.cursor = 'pointer';
     const swStock = document.createElement('div'); swStock.style.height = '100px'; swStock.style.borderRadius = '10px'; swStock.style.background = state.wallpapers['gradient-1']; swStock.style.border = '1px solid rgba(255,255,255,0.03)'; swStock.style.backgroundSize = 'cover';
     const nameStock = document.createElement('div'); nameStock.style.marginTop = '8px'; nameStock.style.fontSize = '13px'; nameStock.innerText = 'Stock (Default)';
@@ -8523,7 +8423,6 @@ function settingsApp(opts) {
       applyAccent();
     };
     wList.append(cStock);
-    // Upload card (hidden input + tile)
     const uploadHidden = document.createElement('input'); uploadHidden.type = 'file'; uploadHidden.accept = 'image/*'; uploadHidden.style.display = 'none';
     const cUpload = document.createElement('div'); cUpload.className = 'white-corners'; cUpload.style.width = '160px'; cUpload.style.padding = '10px'; cUpload.style.cursor = 'pointer';
     const swUpload = document.createElement('div'); swUpload.style.height = '100px'; swUpload.style.borderRadius = '10px'; swUpload.style.border = '1px dashed rgba(255,255,255,0.08)'; swUpload.style.display = 'flex'; swUpload.style.alignItems = 'center'; swUpload.style.justifyContent = 'center'; swUpload.style.color = 'var(--muted)'; swUpload.textContent = '+ Add Wallpaper';
@@ -8560,10 +8459,9 @@ function settingsApp(opts) {
     });
     wScroll.append(wList);
 
-    // append hidden input so it exists in DOM
     wScroll.appendChild(uploadHidden);
 
-    // Icon style toggle
+    // Icon style togglin
     const iconStyleToggle = document.createElement('button');
     iconStyleToggle.className = 'btn';
     iconStyleToggle.textContent = state.settings.iconStyle === 'text' ? 'Switch to Emoji Icons' : 'Switch to Text Icons';
@@ -8575,7 +8473,6 @@ function settingsApp(opts) {
       updateStartMenu();
     };
 
-    // Accent picker (includes Stock white)
     const accentWrap = document.createElement('div');
     accentWrap.style.marginTop = '16px';
     const accentTitle = document.createElement('div'); accentTitle.className = 'settings-h1'; accentTitle.textContent = 'Accent color';
@@ -8626,7 +8523,6 @@ function settingsApp(opts) {
     });
     accentWrap.append(accentTitle, accentList);
 
-    // Taskbar style picker
     const taskbarWrap = document.createElement('div');
     taskbarWrap.style.marginTop = '16px';
     const tbTitle = document.createElement('div'); tbTitle.className = 'settings-h1'; tbTitle.textContent = 'Taskbar style';
@@ -8649,12 +8545,11 @@ function settingsApp(opts) {
     page.append(wScroll, iconStyleToggle, accentWrap, taskbarWrap);
   }
 
-  // Sound settings page removed
+  // Another canceled feature: Sound settings page removed :/
 
   function renderNetworkPage() {
     page.innerHTML = '';
     header.innerHTML = '';
-    // Emoji hero header for Network (consistent with other sections)
     const hero = document.createElement('div'); hero.className = 'settings-hero';
     const logo = document.createElement('div'); logo.className = 'settings-hero-logo'; logo.innerHTML = wifiBarsIcon(4);
     const heroText = document.createElement('div'); heroText.className = 'settings-hero-text';
@@ -8687,7 +8582,7 @@ function settingsApp(opts) {
       if (state.wifi && state.wifi.connected) {
         disconnectWifi();
       } else {
-        // default to RT Hotspot when turning on without selection
+        // default to RT Hotspot when its turning it on
         connectWifi('rt-hotspot');
       }
       setToggleUi();
@@ -8716,20 +8611,14 @@ function settingsApp(opts) {
       const isThis = !!(state.wifi.connected && state.wifi.network === id);
       const isTarget = !!(state.wifi.connecting && state.wifi.target === id);
       const isConnecting = !!state.wifi.connecting;
-      // Preserve original texts: "Disconnect", "Connecting…", "Connect"
-      // Behavior: clicking "Connecting…" cancels; clicking "Connect" while connecting switches.
       btn.textContent = isThis ? 'Disconnect' : (isTarget ? 'Connecting…' : 'Connect');
-      // Do not blanket-disable during connecting; allow user to cancel or switch
       btn.disabled = false;
       btn.onclick = () => {
         if (isThis) {
-          // Disconnect current network
           disconnectWifi();
         } else if (isTarget) {
-          // Cancel in-progress connection
           disconnectWifi();
         } else {
-          // Switch or connect to selected network
           connectWifi(id);
         }
         renderNetworkPage();
@@ -8746,7 +8635,7 @@ function settingsApp(opts) {
 
     page.append(status, toggleRow, listTitle, list);
 
-    // Live updates during connecting: only when Network tab is active
+    // Live updates during connecting
     if (wifiChangeHandlerRef) {
       document.removeEventListener('wifi-changed', wifiChangeHandlerRef);
       wifiChangeHandlerRef = null;
@@ -8788,7 +8677,6 @@ function settingsApp(opts) {
       navNetwork.classList.remove('active');
       renderAccountsPage();
     }
-    // trigger enter animation
     page.classList.remove('page-enter'); void page.offsetWidth; page.classList.add('page-enter');
   }
 
@@ -8915,7 +8803,6 @@ function filesApp() {
       const icon = document.createElement("div");
       icon.className = "file-icon";
       
-      // Set appropriate icon based on file type
       if (f.type) {
         if (f.type.startsWith("image/")) {
           icon.innerHTML = "🖼️";
@@ -8954,14 +8841,11 @@ function filesApp() {
   }
 
   function openFilePreview(file) {
-    // Route .nt to Notepad
     if ((file.name||'').toLowerCase().endsWith('.nt') || (file.type||'').includes('rtos-note')) {
-      // Find the id by matching object reference
       const entry = Object.entries(state.files || {}).find(([id, f]) => f === file);
       openNoteWithFile(file, entry ? entry[0] : undefined);
       return;
     }
-    // Route audio/video to Media Player
     if (file.type && (file.type.startsWith('video/') || file.type.startsWith('audio/'))) {
       openMediaWithFile(file);
       return;
@@ -9058,7 +8942,6 @@ function filesApp() {
       const reader = new FileReader();
       await new Promise((res, rej) => {
         reader.onload = () => { 
-          // Try to read as text for text files, including custom .nt
           const isNt = (f.name||'').toLowerCase().endsWith('.nt');
           if (isNt || f.type.startsWith('text/')) {
             const textReader = new FileReader();
@@ -9185,7 +9068,6 @@ function notesApp(opts = {}) {
   root.style.flexDirection = 'column';
   root.style.height = '100%';
 
-  // Header / toolbar
   const header = document.createElement('div');
   header.style.display = 'flex';
   header.style.gap = '8px';
@@ -9225,7 +9107,6 @@ function notesApp(opts = {}) {
     updateTitle();
   }
 
-  // Initialize content
   if (currentFile) {
     loadFromFile(currentFile, currentFileId);
   } else {
@@ -9244,7 +9125,6 @@ function notesApp(opts = {}) {
     if (!currentFileId) return doSaveAs();
     if (!state.files[currentFileId]) return doSaveAs();
     state.files[currentFileId].text = ta.value;
-    // Keep other metadata (name, type)
     alert('Saved');
     return currentFileId;
   }
@@ -9293,13 +9173,11 @@ function notesApp(opts = {}) {
     alert('Shortcut added to desktop');
   };
 
-  // Enable desktop context menu inside Notes
   root.addEventListener('contextmenu', (e) => {
     e.preventDefault();
     showContextMenu(e, null);
   });
 
-  // Handle being asked to open a note into this window
   setTimeout(() => {
     const winEl = root.closest('.window');
     if (!winEl) return;
@@ -9319,14 +9197,13 @@ function notesApp(opts = {}) {
 function paintApp() {
   const root = document.createElement("div");
   root.className = "canvas-container";
-  // Title removed to maximize drawing area
   
   const tools = document.createElement("div");
   tools.className = "canvas-tools";
   
   const colorPicker = document.createElement("input");
   colorPicker.type = "color";
-  // Dark-only: default to white brush
+
   colorPicker.value = "#ffffff";
   colorPicker.className = "color-picker";
   
@@ -9337,8 +9214,6 @@ function paintApp() {
   brushSize.value = "5";
   brushSize.className = "brush-size";
 
-  // No size controls — fixed canvas
-  
   const clearBtn = document.createElement("button");
   clearBtn.className = "btn";
   clearBtn.textContent = "Clear";
@@ -9378,7 +9253,7 @@ function paintApp() {
 
 
   function resizeCanvas() {
-    // Fixed size: 1920x1080, fit to wrapper
+    // Fixed size 1920x1080
     const cssW = 1920, cssH = 1080;
     canvasWrapper.style.width = cssW + 'px';
     canvasWrapper.style.height = cssH + 'px';
@@ -9389,7 +9264,6 @@ function paintApp() {
 
     ctx.setTransform(1,0,0,1,0,0);
     ctx.scale(dpr, dpr);
-    // Dark-only background
     ctx.fillStyle = "#1a1c20";
     ctx.fillRect(0, 0, cssW, cssH);
     ctx.lineCap = "round";
@@ -9397,9 +9271,7 @@ function paintApp() {
     ctx.lineWidth = parseFloat(brushSize.value);
   }
 
-  // Initial fixed size
   resizeCanvas();
-  // No observers or controls — stays fixed
 
   let isDrawing = false;
   let lastX = 0;
@@ -9573,7 +9445,7 @@ function clockApp() {
 }
 
 /* ----------------------
-   CMD app: simple REPL
+   CMD app!!!!!
    ---------------------- */
 function cmdApp() {
   const root = document.createElement("div"); 
@@ -9589,9 +9461,7 @@ function cmdApp() {
   log.style.borderRadius = "8px"; 
   log.style.fontFamily = "monospace"; 
   log.style.fontSize = "13px"; 
-  // Switch to modern white on dark by default
   log.style.color = "#ffffff";
-  // Preserve ASCII spacing for banners and formatted output
   log.style.whiteSpace = "pre";
   
   const inputWrap = document.createElement("div"); 
@@ -9635,7 +9505,7 @@ function cmdApp() {
   write("RT CMD v1.0 - type 'help' for commands");
   write("-------------------------------------", "cmd-sep");
 
-  // Matrix fun effect
+  // "Matrix" Effect (i could not even do an actual Matrix effect yet :P)
   let matrixTimer = null;
   function startMatrix() {
     if (matrixTimer) return;
@@ -9648,7 +9518,6 @@ function cmdApp() {
   }
   function stopMatrix() { if (matrixTimer) { clearInterval(matrixTimer); matrixTimer = null; } }
  
-  // Sandbox helpers for safe HTML execution
   function sandboxWindowFromHtml(html, title = "Mod (sandbox)") {
     const root = document.createElement('div');
     root.style.height = '100%';
@@ -9683,7 +9552,6 @@ function cmdApp() {
     const parts = raw.trim().split(/\s+/);
     const cmd = parts[0].toLowerCase();
     const args = parts.slice(1);
-    // Aliases to make common variants work (e.g., 'IS' vs 'ls')
     const aliasMap = {
       'is': 'ls',
       'dir': 'ls',
@@ -9852,11 +9720,10 @@ function cmdApp() {
     }
     else if (resolved === 'shutdown') {
       write('Shutting down...');
-      // Use unified shutdown overlay + chime
       if (typeof playShutdownAndExit === 'function') {
         playShutdownAndExit();
       }
-      // Close windows shortly after to simulate app termination
+
       setTimeout(() => {
         document.querySelectorAll('.window').forEach(w => w.remove());
       }, 300);
@@ -9878,11 +9745,9 @@ function cmdApp() {
     else if (resolved === 'exit') {
       const win = root.closest('.window');
       if (win) {
-        // Prefer the standard close routine (anim + taskbar cleanup)
         const closeBtn = win.querySelector('.controls .wbtn:last-child');
         if (closeBtn) closeBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
         else {
-          // Fallback: ensure taskbar icon and state are cleaned
           const appId = win.dataset.appId;
           try { if (appId && typeof removeTaskIcon === 'function') removeTaskIcon(appId); } catch(_) {}
           if (appId && state.openWindows) delete state.openWindows[appId];
@@ -9928,9 +9793,9 @@ function cmdApp() {
   return root;
 }
 
-/* Installation flow removed: starting directly at boot */
+/* Installation system start removed directly at boot */
 
-/* Expose a quick debug API in console for dev */
+/* It exposes a quick debug API in console for dev */
 window._rtos = { state, createWindow, openApp };
 </script>
 </body>
