@@ -1,12 +1,47 @@
+<!-- LagTest v1.2 by 3pm -->
 <html>
     <body>
-        <p>hi</p>
+        <p>LagTest</p>
+        <button id="startbtn">Start</button>
+        <p id="changingtext">This text changes color at the rate of the website.</p>
         <script>
-            setInterval(() => {
-                const thing = document.createElement("p");
-                thing.innerText = "HEELP";
-                document.body.appendChild(thing);
-            }, 1);
+            const nonunicode = "¡¢£¤¥¦§¨©ª«¬®¯°±²³´µ¶·¸¹º»¼½¾¿ÀÁÂÃÄÅÆÇÈÉÊËÌÍÎÏÐÑÒÓÔÕÖ×ØÙÚÛÜÝÞßàáâãäåæçèéêëìíîïðñòóôõö÷øùúûüýþÿĀāĂăĄąĆćĈĉĊċČčĎďĐđĒēĔĕĖėĘęĚěĜĝĞğĠġĢģĤĥĦħĨĩĪīĬĭĮįİıĲĳĴĵĶķĸĹĺĻļĽľĿŀŁłŃńŅņŇňŉŊŋŌōŎŏŐőŒœŔŕŖŗŘřŚśŜŝŞşŠšŢţŤťŦŧŨũŪūŬŭŮůŰűŲųŴŵŶŷŸŹźŻżŽž";
+            const hexnums = "0123456789ABCDEF";
+            const changingtext = document.getElementById("changingtext");
+            var starttimems = Date.now();
+            function glitchtext(length) {
+                var output = "";
+                for (let i=0;i<length;i++) {
+                    output += nonunicode[Math.floor(Math.random()*nonunicode.length)];
+                }
+                return output;
+            }
+            function randcolor() {
+                var output = "#";
+                for (let i=0;i<6;i++) {
+                    output += hexnums[Math.floor(Math.random()*hexnums.length)];
+                }
+                return output;
+            }
+            document.getElementById("startbtn").onclick = () => {
+                setInterval(() => {
+                    starttimems = Date.now();
+                    setInterval(() => {
+                        setInterval(() => {
+                            setInterval(() => {
+                                setInterval(() => {
+                                    const thing = document.createElement("p");
+                                    thing.innerText = glitchtext(200);
+                                    document.body.appendChild(thing);
+                                    setInterval(()=>{thing.innerText=glitchtext(200);});
+                                    changingtext.style.color=randcolor();
+                                    changingtext.innerText = (1 / ((Date.now()-starttimems)/1000)).toPrecision(2).toString()+"fps";
+                                }, 1);
+                            }, 1);
+                        }, 1);
+                    }, 1);
+                }, 1);
+            };
         </script>
     </body>
 </html>
