@@ -1,4 +1,4 @@
-<!-- RTOS v1.0 by Rodrigo Travanca -->
+<!-- RTOS v1.0.1 by Rodrigo Travanca -->
 <!doctype html>
 <html lang="en">
 <head>
@@ -842,7 +842,7 @@ body.boot-reveal .taskbar .task-mid > * { animation: chipIn 0.45s ease-out both;
 
 
 <div id="boot"><div class="boot-card white-corners neon-outline"><div class="logo">RT OS</div>
-<div class="boot-sub">Loading RT OS — sleek, modern, and customizable</div>
+<div class="boot-sub">Loading RT OS 1.0.1 / clean, modern, and customizable</div>
 <div class="progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100"><div id="progress" class="progress-bar"></div></div>
 <div class="boot-meta"><div id="bootStatus"><span class="boot-spinner"></span> Initializing modules…</div><div id="bootPct">0%</div></div>
 </div></div>
@@ -5538,6 +5538,7 @@ const state = {
 
 let __accounts = { users: {}, current: null };
 let __autosaveTimer = null;
+let __autosaveListenersBound = false;
 
 function loadAccounts() {
   try {
@@ -5547,10 +5548,26 @@ function loadAccounts() {
   } catch(_) {
     __accounts = { users: {}, current: null };
   }
+  try {
+    const needsRestore = !__accounts || !__accounts.users || Object.keys(__accounts.users).length === 0;
+    if (needsRestore) {
+      const bak = localStorage.getItem('rtos.accounts.backup');
+      if (bak) {
+        const parsed = JSON.parse(bak);
+        if (parsed && parsed.users && Object.keys(parsed.users).length > 0) {
+          __accounts = parsed;
+        }
+      }
+    }
+  } catch(_) {}
 }
 
 function saveAccounts() {
-  try { localStorage.setItem('rtos.accounts', JSON.stringify(__accounts)); } catch(_) {}
+  try {
+    const json = JSON.stringify(__accounts);
+    localStorage.setItem('rtos.accounts', json);
+    localStorage.setItem('rtos.accounts.backup', json);
+  } catch(_) {}
 }
 
 function getCurrentUser() {
@@ -5592,6 +5609,7 @@ function createAccount(name, avatarDataURL, password) {
   
   saveUserState();
   applyUserState();
+  try { startAutosave(); } catch(_) {}
 }
 
 function signInAccount(id, password) {
@@ -5602,6 +5620,7 @@ function signInAccount(id, password) {
   try { saveUserState(); } catch(_) {}
   __accounts.current = id; saveAccounts();
   applyUserState();
+  try { startAutosave(); } catch(_) {}
   return { ok:true };
 }
 
@@ -5625,6 +5644,7 @@ function getPersistableState() {
     settings: state.settings,
     files: state.files || {},
     desktopIcons: state.desktopIcons || [],
+    desktopShortcuts: state.desktopShortcuts || [],
     trash: state.trash || {},
     wallpapers: state.wallpapers || {},
     folders: state.folders || [],
@@ -5639,6 +5659,7 @@ function applyPersistedState(saved) {
     state.settings = Object.assign({}, state.settings, saved.settings||{});
     state.files = Object.assign({}, saved.files||{});
     state.desktopIcons = Array.isArray(saved.desktopIcons) ? saved.desktopIcons.slice() : (state.desktopIcons||[]);
+    state.desktopShortcuts = Array.isArray(saved.desktopShortcuts) ? saved.desktopShortcuts.slice() : (state.desktopShortcuts||[]);
     state.trash = Object.assign({}, saved.trash||{});
     state.wallpapers = Object.assign({}, state.wallpapers||{}, saved.wallpapers||{});
     state.folders = Array.isArray(saved.folders) ? saved.folders.slice() : (state.folders||[]);
@@ -5649,13 +5670,24 @@ function applyPersistedState(saved) {
 function saveUserState() {
   const u = getCurrentUser();
   if (!u) return;
-  try { localStorage.setItem('rtos.user.'+u.id+'.state', JSON.stringify(getPersistableState())); } catch(_) {}
+  try {
+    const json = JSON.stringify(getPersistableState());
+    localStorage.setItem('rtos.user.'+u.id+'.state', json);
+    localStorage.setItem('rtos.user.'+u.id+'.state.bak', json);
+  } catch(_) {}
 }
 
 function loadUserState() {
   const u = getCurrentUser();
   if (!u) return null;
-  try { const raw = localStorage.getItem('rtos.user.'+u.id+'.state'); return raw ? JSON.parse(raw) : null; } catch(_) { return null; }
+  try {
+    const raw = localStorage.getItem('rtos.user.'+u.id+'.state');
+    if (raw) return JSON.parse(raw);
+  } catch(_) {}
+  try {
+    const bak = localStorage.getItem('rtos.user.'+u.id+'.state.bak');
+    return bak ? JSON.parse(bak) : null;
+  } catch(_) { return null; }
 }
 
 function applyUserState() {
@@ -5677,12 +5709,39 @@ function applyUserState() {
 function startAutosave() {
   if (__autosaveTimer) { clearInterval(__autosaveTimer); __autosaveTimer = null; }
 
-  __autosaveTimer = setInterval(() => { if (getCurrentUser()) saveUserState(); }, 2500);
-  window.addEventListener('beforeunload', () => { try { saveUserState(); } catch(_) {} });
+  if (getCurrentUser()) { try { saveUserState(); } catch(_) {} }
+  __autosaveTimer = setInterval(() => { if (getCurrentUser()) saveUserState(); }, 1000);
+  if (!__autosaveListenersBound) {
+    window.addEventListener('beforeunload', () => { try { saveUserState(); } catch(_) {} });
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') { try { saveUserState(); } catch(_) {} } });
+    window.addEventListener('blur', () => { try { if (getCurrentUser()) saveUserState(); } catch(_) {} });
+
+  let __saveTick = null;
+  function scheduleUserStateSave() {
+    try { if (!getCurrentUser()) return; } catch(_) { return; }
+    if (__saveTick) clearTimeout(__saveTick);
+    __saveTick = setTimeout(() => { try { saveUserState(); } catch(_) {} }, 500);
+  }
+  document.addEventListener('input', scheduleUserStateSave, { passive: true });
+  document.addEventListener('click', scheduleUserStateSave, { passive: true });
+    __autosaveListenersBound = true;
+  }
 }
 
 
 loadAccounts();
+function __autoActivateAccount() {
+  try {
+    if (!__accounts || !__accounts.users) return;
+    if (__accounts.current) return;
+    const ids = Object.keys(__accounts.users);
+    if (ids.length >= 1) {
+      __accounts.current = ids[0];
+      saveAccounts();
+    }
+  } catch(_) {}
+}
+__autoActivateAccount();
 applyUserState();
 startAutosave();
 
@@ -5815,7 +5874,11 @@ function applyTaskbarStyle(animate = true) {
       }, 360);
     }
   
-    try { refreshMaximizedWindowsFrame(); } catch(_) {}
+    // Delay refreshMaximizedWindowsFrame to allow taskbar transitions to complete
+    // The taskbar has a 0.28s transition for width/max-width/padding
+    setTimeout(() => {
+      try { refreshMaximizedWindowsFrame(); } catch(_) {}
+    }, 300); // Wait slightly longer than the 280ms transition
 
     try { setupTaskbarAutohide(); } catch(_) {}
   } catch(_) {}
@@ -5866,7 +5929,13 @@ function refreshMaximizedWindowsFrame() {
 let _tbResizeTimer = null;
 window.addEventListener('resize', () => {
   if (_tbResizeTimer) cancelAnimationFrame(_tbResizeTimer);
-  _tbResizeTimer = requestAnimationFrame(() => applyTaskbarStyle(false));
+  _tbResizeTimer = requestAnimationFrame(() => {
+    applyTaskbarStyle(false);
+    // Also refresh maximized windows after a delay to ensure proper sizing
+    setTimeout(() => {
+      try { refreshMaximizedWindowsFrame(); } catch(_) {}
+    }, 50);
+  });
 });
 
 
@@ -6227,14 +6296,12 @@ runBoot();
   watch(startMenu);
   watch(searchResults);
   watch(wifiPanel);
-  // Recompute on resize
   window.addEventListener('resize', () => {
     if (!tb.classList.contains('autohide')) return;
     updateMaximizedWindowsForTaskbarVisibility();
   });
 }
 
-// Shift + D to skip BIOS boot and enter desktop instantly
 window.addEventListener('keydown', (e) => {
   try {
     if ((e.key === 'D' || e.key === 'd') && e.shiftKey) {
@@ -6264,12 +6331,15 @@ function playBootChime() {
   tryPlay();
 }
 
-// Shutdown sequence with chime and reboot prompt
+// Shutdown
 function playShutdownAndExit() {
+ 
+  try { saveUserState(); } catch(_) {}
+  try { saveAccounts(); } catch(_) {}
  
   const audio = document.getElementById('shutdownChime');
 
-  // Shutting down overlay (styled)
+  // Shutting down
   const overlay = document.createElement('div');
   overlay.id = 'shutdownOverlay';
   overlay.className = 'shutdown-screen';
@@ -6282,7 +6352,6 @@ function playShutdownAndExit() {
   `;
   document.body.appendChild(overlay);
 
-  // After chime, switch to reboot prompt
   const showPowerOnPrompt = () => {
     overlay.className = 'shutdown-screen off';
     overlay.innerHTML = `
@@ -6303,7 +6372,7 @@ function playShutdownAndExit() {
     const startHold = () => {
       if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
       ring.style.transform = 'scale(1)';
-      holdTimer = setTimeout(() => { location.reload(); }, 1500);
+      holdTimer = setTimeout(() => { try { saveUserState(); } catch(_) {} try { saveAccounts(); } catch(_) {} location.reload(); }, 1500);
     };
     const cancelHold = () => {
       if (holdTimer) { clearTimeout(holdTimer); holdTimer = null; }
@@ -6992,11 +7061,27 @@ function renderDesktopIcons() {
     icon.style.animationDelay = `${(state.desktopIcons.length + sIndex) * 0.1}s`;
     const img = document.createElement('div');
     img.className = 'img';
-    img.textContent = state.settings.iconStyle === 'emoji' ? '📝' : 'NT';
+    const isHtmlShortcut = ((f.name||'').toLowerCase().endsWith('.html') || (f.type||'') === 'text/html');
+    if (state.settings.iconStyle === 'emoji') {
+      img.textContent = isHtmlShortcut ? '🌐' : '📝';
+    } else {
+      img.textContent = isHtmlShortcut ? 'HT' : 'NT';
+    }
     const label = document.createElement('label');
     label.textContent = f.name || 'Note.nt';
     icon.append(img, label);
-    icon.onclick = () => openNoteWithFile(f, fileId);
+    icon.onclick = () => {
+      if ((f.name||'').toLowerCase().endsWith('.nt') || (f.type||'').includes('rtos-note')) {
+        openNoteWithFile(f, fileId);
+      } else if ((f.name||'').toLowerCase().endsWith('.html') || (f.type||'') === 'text/html') {
+        const html = f.text || '';
+        sandboxWindowFromHtml(html, `Sandbox: ${f.name||'index.html'}`);
+      } else if (f.type && (f.type.startsWith('video/') || f.type.startsWith('audio/'))) {
+        openMediaWithFile(f);
+      } else {
+        openFilePreview(f);
+      }
+    };
     icon.oncontextmenu = (e) => {
       e.preventDefault();
       showContextMenu(e, null);
@@ -8092,82 +8177,239 @@ function browserApp(opts={}) {
 }
 
 /* ----------------------
-   Media Player app (NEW)
+   Media Player app (V2)
    ---------------------- */
 function mediaApp(opts = {}) {
   const root = document.createElement("div");
   root.className = "media-player";
-  
-  root.innerHTML = "<h2>RT Media Player</h2><p>Play videos and audio files</p>";
-  
-  const controls = document.createElement("div");
-  controls.className = "media-controls";
-  
-  const fileInput = document.createElement("input");
-  fileInput.type = "file";
-  fileInput.accept = "video/*,audio/*";
-  fileInput.style.flex = "1";
-  
-  controls.appendChild(fileInput);
-  
-  const videoElement = document.createElement("video");
-  videoElement.controls = true;
-  videoElement.style.display = "none";
-  
-  const audioElement = document.createElement("audio");
-  audioElement.controls = true;
-  audioElement.style.display = "none";
-  
-  const noMediaMessage = document.createElement("div");
-  noMediaMessage.innerHTML = "<p style='text-align:center;margin-top:40px;color:var(--muted)'>Select a video or audio file to play</p>";
-  noMediaMessage.style.flex = "1";
-  noMediaMessage.style.display = "flex";
-  noMediaMessage.style.alignItems = "center";
-  noMediaMessage.style.justifyContent = "center";
-  
-  root.append(controls, videoElement, audioElement, noMediaMessage);
 
+  // Inject or update styles
+  const __mpStyle = document.getElementById('media-player-styles');
+  const __mpCss = `
+      .media-player{ display:flex; flex-direction:column; height:100%; gap:10px; }
+      .media-toolbar{ display:flex; align-items:center; gap:8px; }
+      .media-stage{ position:relative; flex:1; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; overflow:hidden; display:flex; align-items:center; justify-content:center; }
+      .media-video, .media-audio{ max-width:100%; max-height:100%; width:100%; height:100%; object-fit:contain; background:#000; display:none; }
+      .media-audio{ height:auto; padding:16px; }
+      .media-overlay{ position:absolute; left:0; right:0; bottom:0; padding:10px; background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,.55) 60%); opacity:0; transform: translateY(12px); transition: opacity .2s ease, transform .2s ease; }
+      .media-stage:hover .media-overlay, .media-overlay.show{ opacity:1; transform: translateY(0); }
+      .media-controls{ display:flex; align-items:center; gap:8px; background: rgba(0,0,0,0.30); border:1px solid rgba(255,255,255,0.24); backdrop-filter: blur(8px); border-radius:12px; padding:8px; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+      .media-btn{ width:34px; height:34px; border-radius:10px; border:1px solid rgba(255,255,255,0.24); background:rgba(255,255,255,0.10); color:#fff; font-weight:700; display:flex; align-items:center; justify-content:center; cursor:pointer; transition: background .15s ease, transform .15s ease; }
+      .media-btn:hover{ background: rgba(255,255,255,0.18); }
+      .media-seek{ flex:1; display:flex; align-items:center; gap:8px; }
+      .media-range{ -webkit-appearance:none; appearance:none; height:6px; border-radius:999px; background:rgba(255,255,255,0.28); width:100%; }
+      .media-range::-webkit-slider-thumb{ -webkit-appearance:none; appearance:none; width:14px; height:14px; border-radius:50%; background:#fff; border: none; }
+      .media-time{ font-size:12px; color:#fff; opacity:.95; min-width:88px; text-align:center; font-family: inherit; }
+      .media-vol{ width:110px; }
+      .media-hint{ color:var(--muted); font-size:12px; text-align:center; }
+      .now-badge{ position:absolute; top:24px; left:24px; padding:14px 20px; border-radius:22px; border:1px solid rgba(255,255,255,0.62); background:rgba(0,0,0,0.38); backdrop-filter: blur(10px); color:#fff; font-weight:800; display:none; pointer-events:none; user-select:none; white-space:nowrap; box-shadow:0 12px 28px rgba(0,0,0,0.34); display:flex; align-items:center; gap:16px; font-size:16px; }
+      .now-badge.pop{ animation: badgePop .22s ease-out both; }
+      @keyframes badgePop { from { opacity: 0 } to { opacity: 1 } }
+      .now-logo{ width:52px; height:52px; border-radius:18px; border:1px solid rgba(255,255,255,0.80); display:flex; align-items:center; justify-content:center; background: rgba(255,255,255,0.18); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.10); }
+      .now-logo svg{ width:28px; height:28px; fill:#fff; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.35)); }
+  `;
+  if (__mpStyle) { __mpStyle.textContent = __mpCss; } else { const style = document.createElement('style'); style.id = 'media-player-styles'; style.textContent = __mpCss; document.head.appendChild(style); }
+
+  // Toolbar
+  const toolbar = document.createElement('div');
+  toolbar.className = 'media-toolbar';
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = 'video/*,audio/*';
+  fileInput.style.display = 'none';
+  const btnOpen = document.createElement('button'); btnOpen.className = 'btn'; btnOpen.textContent = 'Open media'; btnOpen.onclick = () => fileInput.click();
+  const hint = document.createElement('div'); hint.className = 'media-hint'; hint.textContent = 'Tip: Double‑click for fullscreen';
+  toolbar.append(btnOpen, hint, fileInput);
+
+  // Stage
+  const stage = document.createElement('div'); stage.className = 'media-stage';
+  const videoElement = document.createElement('video'); videoElement.className = 'media-video'; videoElement.controls = false;
+  const audioElement = document.createElement('audio'); audioElement.className = 'media-audio'; audioElement.controls = false; audioElement.style.display = 'none';
+  const overlay = document.createElement('div'); overlay.className = 'media-overlay';
+  overlay.innerHTML = `
+    <div class="media-controls">
+      <button class="media-btn" id="mpPlay">▶</button>
+      <div class="media-seek">
+        <span class="media-time" id="mpTime">00:00 / 00:00</span>
+        <input type="range" class="media-range" id="mpSeek" min="0" max="100" value="0" />
+      </div>
+      <input type="range" class="media-range media-vol" id="mpVol" min="0" max="1" step="0.01" value="1" />
+      <button class="media-btn" id="mpFs">⛶</button>
+    </div>
+  `;
+  stage.append(videoElement, audioElement, overlay);
+
+  // Bouncing "Now playing" badge for audio
+  const nowBadge = document.createElement('div');
+  nowBadge.className = 'now-badge';
+  nowBadge.innerHTML = '<span class="now-logo" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><path d="M19 3v12.75A3.75 3.75 0 1 1 16.5 12V7H9v8.75A3.75 3.75 0 1 1 6.5 12V5h12z"></path></svg></span><span class="text">Now playing</span>';
+  stage.append(nowBadge);
+  // Explicitly hide on init
+  nowBadge.style.display = 'none';
+
+  const noMediaMessage = document.createElement('div');
+  noMediaMessage.innerHTML = "<p style='text-align:center;margin-top:40px;color:var(--muted)'>Open or drop a video/audio file</p>";
+  noMediaMessage.style.position = 'absolute';
+  noMediaMessage.style.pointerEvents = 'none';
+  stage.append(noMediaMessage);
+
+  // Drag & drop support
+  stage.addEventListener('dragover', (e)=>{ e.preventDefault(); stage.style.outline='2px dashed var(--accent)'; });
+  stage.addEventListener('dragleave', ()=>{ stage.style.outline='none'; });
+  stage.addEventListener('drop', (e)=>{
+    e.preventDefault(); stage.style.outline='none';
+    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (f) handleFileInput(f);
+  });
+
+  root.append(toolbar, stage);
+
+  let activeEl = null;
+  let currentTrackName = '';
+  let badgeX = 24, badgeY = 24, vx = 1.2, vy = 1.0, badgeRAF = null;
+  function setBadgeText(name){
+    const text = nowBadge.querySelector('.text');
+    text.textContent = `Now playing: ${name || 'Audio'}`;
+  }
+  function tickBadge(){
+    const bw = nowBadge.offsetWidth || 160;
+    const bh = nowBadge.offsetHeight || 36;
+    const sw = stage.clientWidth;
+    const sh = stage.clientHeight;
+    // Keep away from the bottom controls overlay
+    const ctrl = overlay.querySelector('.media-controls');
+    const ctrlH = ctrl ? (ctrl.offsetHeight + 22) : 0;
+    const bottomLimit = Math.max(0, sh - ctrlH);
+    badgeX += vx; badgeY += vy;
+    if (badgeX <= 0) { badgeX = 0; vx = Math.abs(vx); }
+    if (badgeY <= 0) { badgeY = 0; vy = Math.abs(vy); }
+    if (badgeX + bw >= sw) { badgeX = Math.max(0, sw - bw); vx = -Math.abs(vx); }
+    if (badgeY + bh >= bottomLimit) { badgeY = Math.max(0, bottomLimit - bh); vy = -Math.abs(vy); }
+    nowBadge.style.transform = `translate(${badgeX}px, ${badgeY}px)`;
+    badgeRAF = requestAnimationFrame(tickBadge);
+  }
+  function showBadge(show){
+    if (show){
+      setBadgeText(currentTrackName);
+      // Ensure pop animation restarts
+      nowBadge.classList.remove('pop');
+      // Sync CSS vars for pop origin
+      nowBadge.style.setProperty('--bx', badgeX + 'px');
+      nowBadge.style.setProperty('--by', badgeY + 'px');
+      nowBadge.style.display = 'inline-flex';
+      // Force reflow to restart animation
+      void nowBadge.offsetWidth;
+      nowBadge.classList.add('pop');
+      if (!badgeRAF) badgeRAF = requestAnimationFrame(tickBadge);
+    } else {
+      nowBadge.style.display = 'none';
+      if (badgeRAF) { cancelAnimationFrame(badgeRAF); badgeRAF = null; }
+    }
+  }
+  function setActive(isVideo){
+    if (isVideo){
+      videoElement.style.display = 'block';
+      audioElement.style.display = 'none';
+      activeEl = videoElement;
+    } else {
+      audioElement.style.display = 'block';
+      videoElement.style.display = 'none';
+      activeEl = audioElement;
+    }
+  }
+  async function stopBoth(){
+    try { videoElement.pause(); } catch(_) {}
+    try { audioElement.pause(); } catch(_) {}
+    videoElement.removeAttribute('src'); audioElement.removeAttribute('src');
+    try { videoElement.load(); } catch(_) {}
+    try { audioElement.load(); } catch(_) {}
+    showBadge(false);
+  }
+  async function prepareAndPlay(src, isVideo){
+    await stopBoth();
+    setActive(!!isVideo);
+    noMediaMessage.style.display = 'none';
+    if (isVideo) { showControls(); showBadge(false); }
+    else { /* audio: wait for real play event */ showBadge(false); }
+    activeEl.src = src;
+    try {
+      // Ensure metadata ready for correct durations
+      await new Promise((res)=>{
+        if (activeEl.readyState >= 1) return res();
+        const onmd = () => { activeEl.removeEventListener('loadedmetadata', onmd); res(); };
+        activeEl.addEventListener('loadedmetadata', onmd);
+        try { activeEl.load(); } catch(_) {}
+      });
+      await activeEl.play();
+    } catch(err){ /* swallow AbortError */ }
+  }
   function loadFromFileObject(fileObj) {
     if (!fileObj) return;
     const isVideo = fileObj.type && fileObj.type.startsWith('video/');
     const isAudio = fileObj.type && fileObj.type.startsWith('audio/');
     const src = fileObj.dataURL || '';
-    if (isVideo) {
-      videoElement.style.display = "block";
-      audioElement.style.display = "none";
-      videoElement.src = src;
-      noMediaMessage.style.display = "none";
-      videoElement.play().catch(() => {});
-    } else if (isAudio) {
-      audioElement.style.display = "block";
-      videoElement.style.display = "none";
-      audioElement.src = src;
-      noMediaMessage.style.display = "none";
-      audioElement.play().catch(() => {});
-    }
+    currentTrackName = (fileObj && fileObj.name) || '';
+    if (isVideo) { prepareAndPlay(src, true); }
+    else if (isAudio) { prepareAndPlay(src, false); }
   }
 
   fileInput.onchange = function(e) {
     const file = e.target.files[0];
     if (!file) return;
+    handleFileInput(file);
+  };
+
+  function handleFileInput(file){
     const fileURL = URL.createObjectURL(file);
     const isVideo = file.type.startsWith('video/');
-    if (isVideo) {
-      videoElement.style.display = "block";
-      audioElement.style.display = "none";
-      videoElement.src = fileURL;
-      noMediaMessage.style.display = "none";
-      videoElement.play().catch(() => {});
-    } else if (file.type.startsWith('audio/')) {
-      audioElement.style.display = "block";
-      videoElement.style.display = "none";
-      audioElement.src = fileURL;
-      noMediaMessage.style.display = "none";
-      audioElement.play().catch(() => {});
-    } else {
-      alert("Please select a valid video or audio file.");
-    }
+    currentTrackName = file && file.name || '';
+    if (isVideo) { prepareAndPlay(fileURL, true); }
+    else if (file.type.startsWith('audio/')) { prepareAndPlay(fileURL, false); }
+    else { alert("Please select a valid video or audio file."); }
+  }
+
+  // Custom controls logic
+  const btnPlay = overlay.querySelector('#mpPlay');
+  const seek = overlay.querySelector('#mpSeek');
+  const vol = overlay.querySelector('#mpVol');
+  const btnFs = overlay.querySelector('#mpFs');
+  const timeEl = overlay.querySelector('#mpTime');
+
+  const fmt = (s)=>{
+    s = Math.max(0, s|0); const m = (s/60)|0; const ss = (s%60)|0; return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
   };
+  const updateTime = ()=>{
+    const el = activeEl || videoElement;
+    const cur = el.currentTime || 0; const dur = el.duration || 0;
+    timeEl.textContent = `${fmt(cur)} / ${fmt(dur)}`;
+    seek.max = dur || 0; seek.value = cur || 0;
+  };
+  const showControls = ()=>{ overlay.classList.add('show'); clearTimeout(hideTimer); hideTimer = setTimeout(()=> overlay.classList.remove('show'), 1800); };
+  let hideTimer = null;
+
+  btnPlay.onclick = ()=>{ const el = activeEl || videoElement; if (el.paused) { el.play().catch(()=>{}); btnPlay.textContent='⏸'; } else { el.pause(); btnPlay.textContent='▶'; } showControls(); };
+  [videoElement, audioElement].forEach(el=>{
+    el.addEventListener('play', ()=>{ if (el===activeEl) btnPlay.textContent='⏸'; });
+    el.addEventListener('pause', ()=>{ if (el===activeEl) { btnPlay.textContent='▶'; if (el===audioElement) showBadge(false); } });
+    el.addEventListener('ended', ()=>{ if (el===audioElement) showBadge(false); });
+    el.addEventListener('timeupdate', updateTime);
+    el.addEventListener('loadedmetadata', updateTime);
+  });
+  audioElement.addEventListener('play', ()=>{ if (audioElement===activeEl) { showBadge(true); } });
+  seek.addEventListener('input', ()=>{ const el = activeEl || videoElement; el.currentTime = Number(seek.value||0); showControls(); });
+  vol.addEventListener('input', ()=>{ const el = activeEl || videoElement; el.volume = Number(vol.value||1); showControls(); });
+  btnFs.onclick = ()=>{
+    const el = stage;
+    if (document.fullscreenElement) { document.exitFullscreen().catch(()=>{}); }
+    else { el.requestFullscreen && el.requestFullscreen().catch(()=>{}); }
+    showControls();
+  };
+  // Interaction helpers
+  stage.addEventListener('mousemove', showControls);
+  stage.addEventListener('click', ()=>{ /* bring up controls */ showControls(); });
+  stage.addEventListener('dblclick', ()=> btnFs.click());
+  stage.addEventListener('keydown', (e)=>{ if (e.code==='Space'){ e.preventDefault(); btnPlay.click(); } });
+  stage.tabIndex = 0;
 
   if (opts && opts.file) {
     loadFromFileObject(opts.file);
@@ -8196,6 +8438,25 @@ function mediaApp(opts = {}) {
 function settingsApp(opts) {
   const root = document.createElement('div');
   root.className = 'settings-container';
+  // Inject Flappy RT styles once
+  if (!document.getElementById('flappy-rt-styles')) {
+    const st = document.createElement('style');
+    st.id = 'flappy-rt-styles';
+    st.textContent = `
+      .flappy-rt-overlay{ position:fixed; inset:0; background:#06070a; z-index:1000000; display:flex; align-items:center; justify-content:center; }
+      .flappy-rt-canvas{ width:100%; height:100%; display:block; }
+      .flappy-rt-exit{ position:absolute; top:16px; right:16px; border-radius:12px; border:1px solid rgba(255,255,255,0.8); background:rgba(255,255,255,0.12); color:#fff; padding:8px 10px; display:flex; align-items:center; gap:8px; cursor:pointer; font-weight:800; backdrop-filter: blur(8px); }
+      .flappy-rt-exit:hover{ background:rgba(255,255,255,0.18); }
+      .settings-hero-logo.rt-anim{ animation: rtPulse 2.2s ease-in-out infinite; }
+      @keyframes rtPulse { 0%,100%{ transform: translateZ(0) scale(1); text-shadow: 0 0 0 rgba(255,255,255,0);} 50%{ transform: translateZ(0) scale(1.04); text-shadow: 0 0 18px rgba(255,255,255,0.35);} }
+      .settings-hero{ position: relative; }
+      .settings-hero-logo.rt-shake{ animation: rtShake .45s ease-in-out; }
+      @keyframes rtShake { 0%{ transform: translate(0,0) rotate(0deg);} 20%{ transform: translate(-2px,1px) rotate(-2deg);} 40%{ transform: translate(2px,-1px) rotate(2deg);} 60%{ transform: translate(-2px,1px) rotate(-2deg);} 80%{ transform: translate(2px,0) rotate(2deg);} 100%{ transform: translate(0,0) rotate(0deg);} }
+      .rt-smoke{ position:absolute; width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.85); filter: blur(1px); opacity:.9; pointer-events:none; animation: smokeUp .9s ease-out forwards; }
+      @keyframes smokeUp { 0%{ transform: translate(0,0) scale(1); opacity:.9 } 60%{ transform: translate(-6px,-22px) scale(1.6); opacity:.55 } 100%{ transform: translate(-10px,-36px) scale(2.2); opacity:0 } }
+    `;
+    document.head.appendChild(st);
+  }
 
   // Left nav
   const nav = document.createElement('div');
@@ -8364,7 +8625,49 @@ function settingsApp(opts) {
     page.innerHTML = '';
     header.innerHTML = '';
     const hero = document.createElement('div'); hero.className = 'settings-hero';
-    const logo = document.createElement('div'); logo.className = 'settings-hero-logo'; logo.textContent = 'RT';
+    const logo = document.createElement('div'); logo.className = 'settings-hero-logo rt-anim'; logo.textContent = 'RT';
+    // Make RT look non-clicky (no pointer cursor), but still clickable for easter egg
+    logo.style.cursor = 'default';
+    logo.style.userSelect = 'none';
+    let clickTimes = [];
+    let spamTimer = null;
+    const spawnLogoSmoke = (count=1)=>{
+      try{
+        const heroRect = hero.getBoundingClientRect();
+        const lr = logo.getBoundingClientRect();
+        for (let i=0;i<count;i++){
+          const s = document.createElement('span'); s.className='rt-smoke';
+          const rx = Math.random()*lr.width*0.8 + lr.width*0.1;
+          const ry = Math.random()*lr.height*0.6 + lr.height*0.2;
+          s.style.left = (lr.left - heroRect.left + rx) + 'px';
+          s.style.top = (lr.top - heroRect.top + ry) + 'px';
+          s.style.width = s.style.height = (6+Math.random()*6) + 'px';
+          hero.appendChild(s);
+          s.addEventListener('animationend', ()=> s.remove());
+        }
+      }catch(_){ }
+    };
+    logo.addEventListener('click', () => {
+      const now = Date.now();
+      clickTimes = clickTimes.filter(t => now - t < 1200);
+      clickTimes.push(now);
+      // subtle click pulse
+      logo.classList.remove('rt-shake');
+      void logo.offsetWidth; // restart
+      logo.classList.add('rt-shake');
+      spawnLogoSmoke(2);
+      if (clickTimes.length >= 6) {
+        clickTimes = [];
+        // angry ramp-up
+        spawnLogoSmoke(10);
+        setTimeout(()=>{
+          spawnLogoSmoke(10);
+          if (!document.querySelector('.flappy-rt-overlay')) openFlappyRT();
+        }, 220);
+      }
+      clearTimeout(spamTimer);
+      spamTimer = setTimeout(()=>{ clickTimes = []; }, 1400);
+    });
     const heroText = document.createElement('div'); heroText.className = 'settings-hero-text';
     const heroTitle = document.createElement('div'); heroTitle.className = 'settings-hero-title'; heroTitle.textContent = 'RT OS';
     const heroSub = document.createElement('div'); heroSub.className = 'settings-hero-sub'; heroSub.textContent = 'Stable Edition';
@@ -8388,6 +8691,338 @@ function settingsApp(opts) {
     add('Version', meta.version);
     add('Build date', meta.build);
     page.append(title, kv);
+
+    //whats new ui Ok
+    if (!document.getElementById('whats-new-styles')){
+      const st = document.createElement('style');
+      st.id = 'whats-new-styles';
+      st.textContent = `
+        .wn-card{ margin-top:14px; border:1px solid rgba(255,255,255,0.12); border-radius:16px; overflow:hidden; background:rgba(255,255,255,0.04); backdrop-filter: blur(8px); opacity:0; transform: translateY(14px) scale(0.99); animation: wnIn .45s cubic-bezier(.2,.8,.2,1) .08s forwards; }
+        .wn-head{ padding:12px 14px; display:flex; align-items:center; gap:10px; border-bottom:1px solid rgba(255,255,255,0.08); }
+        .wn-toggle{ width:28px; height:28px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; border:1px solid rgba(255,255,255,0.20); background:rgba(255,255,255,0.08); color:#fff; cursor:pointer; transition: background .2s ease, transform .2s ease; }
+        .wn-toggle:hover{ background:rgba(255,255,255,0.14); }
+        .wn-arrow{ display:block; transform: rotate(-90deg); transition: transform .22s ease; }
+        .wn-expanded .wn-arrow{ transform: rotate(0deg); }
+        .wn-title{ font-weight:900; font-size:18px; letter-spacing:.2px; }
+        .wn-body{ padding:14px 18px; display:grid; gap:10px; overflow:hidden; max-height:0; opacity:0; transition: max-height .35s ease, opacity .28s ease; }
+        .wn-expanded .wn-body{ opacity:1; }
+        .wn-large{ box-shadow:0 18px 48px rgba(0,0,0,0.35); }
+        .wn-expanded.wn-large .wn-body{ max-height:1200px; }
+        .wn-section{ margin-top:4px; }
+        .wn-h2{ font-weight:900; margin:8px 0 6px; font-size:15px; letter-spacing:.2px; }
+        .wn-ul{ margin-left:16px; display:grid; gap:6px; }
+        .wn-ul li{ line-height:1.6; color:#e6e9ec; }
+        .wn-footer{ padding:12px 18px; color:var(--muted); border-top:1px solid rgba(255,255,255,0.08); font-size:13px; }
+        @keyframes wnIn{ from{ opacity:0; transform: translateY(18px) scale(0.985);} to{ opacity:1; transform: translateY(0) scale(1);} }
+      `;
+      document.head.appendChild(st);
+    }
+
+    // What's New animated panel
+    const wn = document.createElement('div'); wn.className = 'wn-card white-corners wn-large';
+    const wnHead = document.createElement('div'); wnHead.className = 'wn-head';
+    const wnToggle = document.createElement('button'); wnToggle.className = 'wn-toggle'; wnToggle.setAttribute('aria-expanded','false'); wnToggle.setAttribute('aria-label',"Toggle What's New");
+    wnToggle.innerHTML = '<span class="wn-arrow">▾</span>';
+    const wnTitle = document.createElement('div'); wnTitle.className = 'wn-title'; wnTitle.textContent = 'RT OS v1.0.1 – Update Notes';
+    const wnBadge = document.createElement('div'); wnBadge.className = 'settings-version-badge'; wnBadge.textContent = 'What’s New';
+    wnHead.append(wnToggle, wnTitle, wnBadge);
+    const wnBody = document.createElement('div'); wnBody.className = 'wn-body';
+    wnBody.innerHTML = `
+      <div class="wn-section">
+        <div class="wn-h2">New Features</div>
+        <ul class="wn-ul">
+          <li><b>Now Playing Badge</b><br/>A moving badge shows up in the media player when audio is playing.</li>
+          <li><b>Secret Mini-Game</b><br/>A hidden game was added. Look around the OS to find it.</li>
+        </ul>
+      </div>
+      <div class="wn-section">
+        <div class="wn-h2">Remastered</div>
+        <ul class="wn-ul">
+          <li><b>Media Player</b><br/>New UI that matches the OS.<br/>Pause/play button, progress bar, and volume bar added.<br/>Cleaner look and better contrast.</li>
+          <li><b>Trash</b><br/>New look to match the OS.<br/>Better delete/restore menu with a list of deleted files.<br/>Smoother animations.</li>
+          <li><b>File Manager</b><br/>You can now move files to other folders.<br/>More icon choices.<br/>Smoother animations.<br/>New look that fits the OS.</li>
+        </ul>
+      </div>
+      <div class="wn-section">
+        <div class="wn-h2">Bug Fixes</div>
+        <ul class="wn-ul">
+          <li><b>Taskbar</b><br/>Fixed the bug where it looked off when switching from center to left.</li>
+          <li><b>Accounts</b><br/>Fixed a bug where saves didn’t always stay, and sometimes accounts were lost on restart.<br/>Now account data stays saved.</li>
+          <li><b>Animations</b><br/>Fixed a bug with pop-up animations by switching them to opacity-only.</li>
+        </ul>
+      </div>
+    `;
+    const wnFooter = document.createElement('div'); wnFooter.className = 'wn-footer'; wnFooter.textContent = 'That’s all.';
+    wn.append(wnHead, wnBody, wnFooter);
+    page.append(wn);
+
+    // collapsed by default with animated toggle
+    let expanded = false;
+    const setExpanded = (v)=>{
+      expanded = !!v;
+      wn.classList.toggle('wn-expanded', expanded);
+      wnToggle.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      if (expanded) {
+        // ensure proper height after rendering
+        requestAnimationFrame(()=>{ wnBody.style.maxHeight = wnBody.scrollHeight + 'px'; });
+      } else {
+        wnBody.style.maxHeight = '0px';
+      }
+    };
+    setExpanded(false);
+    wnToggle.addEventListener('click', ()=> setExpanded(!expanded));
+  }
+
+  function openFlappyRT(){
+    // Overlay
+    const overlay = document.createElement('div');
+    overlay.className = 'flappy-rt-overlay';
+    overlay.tabIndex = 0;
+    const canvas = document.createElement('canvas');
+    canvas.className = 'flappy-rt-canvas';
+    const ctx = canvas.getContext('2d');
+    const exitBtn = document.createElement('button'); exitBtn.className = 'flappy-rt-exit'; exitBtn.innerHTML = '⬅ Exit';
+    overlay.append(canvas, exitBtn);
+    document.body.appendChild(overlay);
+
+    // Sizing
+    const resize = ()=>{ canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Simple 8-bit sounds via WebAudio
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const audioCtx = new AC();
+    const beep = (freq=440, dur=0.08, type='square', vol=0.08)=>{
+      try{
+        const o = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        o.type = type; o.frequency.value = freq;
+        g.gain.value = vol; o.connect(g); g.connect(audioCtx.destination);
+        o.start();
+        setTimeout(()=>{ o.stop(); o.disconnect(); g.disconnect(); }, Math.max(10, dur*1000));
+      }catch(_){/* ignore */}
+    };
+
+    // Game state
+    let raf = 0;
+    const W = ()=>canvas.width, H=()=>canvas.height;
+    let GRAV = 0.22;
+    let FLAP = -13.5;
+    let GAP = 520;
+    let PIPE_W = 56;
+    let SPEED = 0.6;
+    const player = { x: Math.floor(W()*0.27), y: Math.floor(H()*0.45), vy: 0, vx: 0, w: 50, h: 50, alive: true };
+    let pipes = [];
+    let tick = 0, score = 0, best = (window.localStorage && +localStorage.getItem('flappyRTBest'))||0;
+    let started = false;
+    let puffs = [];
+    let gameOverAt = 0;
+    let startedAt = 0;
+    let lastFlapAt = 0;
+    let lastSpaceAt = 0;
+    let tipUntil = 0;
+
+    const applyDifficulty = ()=>{
+      if (!startedAt) return;
+      const minutes = (performance.now() - startedAt) / 60000;
+      const f = Math.min(1, minutes / 10);
+      GAP = Math.max(220, Math.round(520 - 300*f));
+      SPEED = 0.6 + 2.0*f;
+      GRAV = 0.22 + 0.12*f;
+    };
+
+    const spawnPipe = ()=>{
+      const minMargin = 80;
+      const maxTop = Math.max(10, H() - (GAP + minMargin));
+      const topH = Math.floor(minMargin/2 + Math.random()*maxTop);
+      pipes.push({ x: W()+20, top: topH, passed:false });
+    };
+
+    const resetGame = ()=>{
+      player.y = Math.floor(H()*0.45); player.vy = 0; player.vx = 0; player.alive = true; score = 0; pipes = []; puffs = []; tick = 0; started = false; startedAt = 0; applyDifficulty();
+    };
+
+    const flap = ()=>{
+      if (!player.alive) { resetGame(); return; }
+      if (!started) { started = true; startedAt = performance.now(); tipUntil = startedAt + 20000; pipes = []; tick = 0; applyDifficulty(); spawnPipe(); }
+      player.vy = FLAP;
+      const dir = (Math.random()<0.5? -1: 1);
+      player.vx += dir * (0.4 + Math.random()*0.4);
+      player.vx = Math.max(-2.0, Math.min(2.0, player.vx));
+      lastFlapAt = performance.now();
+      for (let i=0;i<6;i++){
+        puffs.push({ x: player.x + player.w*0.5, y: player.y + player.h*0.8, r: 3+Math.random()*4, vx: (Math.random()*2-1)*0.8, vy: -1.8 - Math.random()*1.2, life: 1 });
+      }
+      beep(880,0.07,'square',0.08);
+    };
+    const flapSmall = ()=>{
+      if (!player.alive){ resetGame(); return; }
+      if (!started){ started = true; startedAt = performance.now(); tipUntil = startedAt + 20000; pipes = []; tick = 0; applyDifficulty(); spawnPipe(); }
+      const small = FLAP * 0.55;
+      player.vy = small;
+      const dir = (Math.random()<0.5? -1: 1);
+      player.vx += dir * (0.25 + Math.random()*0.25);
+      player.vx = Math.max(-1.6, Math.min(1.6, player.vx));
+      lastFlapAt = performance.now();
+      for (let i=0;i<4;i++){
+        puffs.push({ x: player.x + player.w*0.5, y: player.y + player.h*0.8, r: 2+Math.random()*3, vx: (Math.random()*2-1)*0.6, vy: -1.4 - Math.random()*0.8, life: 0.9 });
+      }
+      beep(760,0.06,'square',0.06);
+    };
+    overlay.addEventListener('pointerdown', flapSmall);
+    overlay.addEventListener('keydown', (e)=>{
+      if (e.code==='Space' || e.code==='ArrowUp') {
+        e.preventDefault();
+        const now = performance.now();
+        if (now - lastSpaceAt < 250) { flap(); } else { flapSmall(); }
+        lastSpaceAt = now;
+      }
+      if (e.code==='Escape'){ close(); }
+    });
+
+    const drawRTLogo = (x,y,w,h,angle=0)=>{
+      ctx.save();
+      ctx.translate(x+w/2, y+h/2);
+      ctx.rotate(angle);
+      ctx.translate(-w/2, -h/2);
+      const r = 14;
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, 'rgba(255,255,255,0.14)');
+      grad.addColorStop(1, 'rgba(255,255,255,0.02)');
+      ctx.fillStyle = grad;
+      ctx.strokeStyle='rgba(255,255,255,0.85)';
+      ctx.lineWidth=2;
+      ctx.beginPath(); ctx.moveTo(r,0); ctx.arcTo(w,0,w,h,r); ctx.arcTo(w,h,0,h,r); ctx.arcTo(0,h,0,0,r); ctx.arcTo(0,0,w,0,r); ctx.closePath();
+      ctx.fill(); ctx.stroke();
+      // RT letters
+      ctx.fillStyle = '#fff'; ctx.font = Math.floor(h*0.5)+'px Inter, Segoe UI, system-ui, Arial'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText('RT', w/2, h/2+1);
+      ctx.restore();
+    };
+
+    const drawPipes = ()=>{
+      ctx.fillStyle = 'rgba(255,255,255,0.85)';
+      pipes.forEach(p=>{
+        // top pipe
+        ctx.fillRect(p.x, 0, PIPE_W, p.top);
+        // bottom pipe
+        const gapY = p.top + GAP; ctx.fillRect(p.x, gapY, PIPE_W, H()-gapY);
+      });
+    };
+
+    const drawPuffs = ()=>{
+      puffs.forEach(pp=>{
+        ctx.globalAlpha = Math.max(0, pp.life);
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(pp.x, pp.y, pp.r, 0, Math.PI*2); ctx.fill();
+        ctx.globalAlpha = 1;
+      });
+    };
+
+    const collides = ()=>{
+      const m = 6;
+      const px1 = player.x + m, px2 = player.x + player.w - m;
+      const py1 = player.y + m, py2 = player.y + player.h - m;
+      if (py1 < 0 || py2 > H()) return true;
+      for (const p of pipes){
+        const gapY = p.top + GAP;
+        const inX = px2 > p.x && px1 < p.x + PIPE_W;
+        const hitTop = inX && (py1 < p.top);
+        const hitBot = inX && (py2 > gapY);
+        if (hitTop || hitBot) return true;
+      }
+      return false;
+    };
+
+    const drawGlitchText = (text, x, y)=>{
+      const t = (performance.now() - gameOverAt) / 1000;
+      const intensity = Math.max(0, 1 - t/0.9);
+      const jitter = 2 + 6*intensity;
+      ctx.globalAlpha = 0.85;
+      ctx.fillStyle = '#ffffff'; ctx.fillText(text, x, y);
+      ctx.globalAlpha = 0.6*intensity; ctx.fillStyle = '#ff3b3b'; ctx.fillText(text, x - jitter, y + jitter*0.4);
+      ctx.globalAlpha = 0.6*intensity; ctx.fillStyle = '#3bc4ff'; ctx.fillText(text, x + jitter*0.8, y - jitter*0.3);
+      ctx.globalAlpha = 0.12*intensity; ctx.fillStyle = '#ffffff';
+      for (let i=0;i<6;i++){ const yy = y - 40 + i*12 + ((t*120 + i*7)%6); ctx.fillRect(x-220, yy, 440, 2); }
+      ctx.globalAlpha = 1;
+    };
+
+    const loop = ()=>{
+      raf = requestAnimationFrame(loop);
+      ctx.clearRect(0,0,W(),H());
+      // update
+      if (player.alive){
+        if (!started){
+          const base = Math.floor(H()*0.45);
+          player.y = base + Math.sin(performance.now()/480)*10;
+          player.vx *= 0.90;
+        } else {
+          player.vy += GRAV; if (player.vy > 6) player.vy = 6; player.y += player.vy;
+          player.vx *= 0.92; player.x += player.vx;
+          player.x = Math.max(40, Math.min(W()*0.65, player.x));
+          if (++tick % 140 === 0) spawnPipe();
+          pipes.forEach(p=> p.x -= SPEED);
+          pipes = pipes.filter(p=> p.x + PIPE_W > -10);
+          pipes.forEach(p=>{ if (!p.passed && p.x + PIPE_W < player.x){ p.passed = true; score++; applyDifficulty(); beep(1200,0.05,'square',0.06); if (score>best){ best=score; try{ localStorage.setItem('flappyRTBest', String(best)); }catch(_){ } } } });
+          if (collides()) { player.alive = false; gameOverAt = performance.now(); beep(220,0.18,'square',0.10); }
+          puffs.forEach(pp=>{ pp.x += pp.vx; pp.y += pp.vy; pp.vx *= 0.98; pp.vy *= 0.99; pp.r *= 1.015; pp.life -= 0.02; });
+          puffs = puffs.filter(pp=> pp.life > 0 && pp.r < 26);
+        }
+      }
+
+      // draw
+      // background subtle grid
+      ctx.fillStyle = '#0a0c10'; ctx.fillRect(0,0,W(),H());
+      drawPipes();
+      drawPuffs();
+      const ang = (!started ? Math.sin(performance.now()/600)*0.06 : Math.max(-0.35, Math.min(0.35, player.vy*0.03))) + player.vx*0.02;
+      drawRTLogo(player.x, player.y, player.w, player.h, ang);
+      
+      ctx.fillStyle = 'rgba(255,255,255,0.85)'; ctx.font = 'bold 24px Inter, Segoe UI, system-ui, Arial'; ctx.textAlign='left'; ctx.textBaseline='top';
+      ctx.fillText('Score: '+score, 16, 16);
+      ctx.fillText('Best: '+best, 16, 44);
+      if (!started){
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.font = 'bold 30px Inter, Segoe UI, system-ui, Arial';
+        const msg = 'Press to start';
+        ctx.globalAlpha = 0.7 + 0.3*Math.sin(performance.now()/350);
+        ctx.fillText(msg, W()/2, H()/2 - 46);
+        ctx.globalAlpha = 1;
+        ctx.font = '15px Inter, Segoe UI, system-ui, Arial';
+        ctx.fillText('Click / Tap / Space / ↑', W()/2, H()/2 - 16);
+        ctx.font = '14px Inter, Segoe UI, system-ui, Arial';
+        ctx.globalAlpha = 0.9;
+        ctx.fillText('Tip: double‑press Space for BIG jump', W()/2, H()/2 + 12);
+        ctx.globalAlpha = 1;
+      } else if (!player.alive){
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.font = 'bold 46px Inter, Segoe UI, system-ui, Arial';
+        drawGlitchText('GAME OVER!', W()/2, H()/2 - 40);
+        ctx.font = '16px Inter, Segoe UI, system-ui, Arial';
+        ctx.globalAlpha = 0.85;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('Click or press Space to retry', W()/2, H()/2 + 4);
+        ctx.globalAlpha = 1;
+      } else if (performance.now() < tipUntil) {
+        ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.font = '14px Inter, Segoe UI, system-ui, Arial';
+        ctx.globalAlpha = 0.85;
+        ctx.fillText('Tip: double‑press Space for BIG jump', W()/2, 60);
+        ctx.globalAlpha = 1;
+      }
+    };
+    loop();
+
+    function close(){
+      cancelAnimationFrame(raf);
+      try{ audioCtx.close(); }catch(_){ }
+      window.removeEventListener('resize', resize);
+      overlay.remove();
+    }
+    exitBtn.addEventListener('click', close);
+    // Focus to capture Space
+    overlay.focus();
   }
 
   function renderPersonalizationPage() {
@@ -8701,6 +9336,32 @@ function settingsApp(opts) {
    FILE MANAGER (IMPROVED)
    ---------------------- */
 function filesApp() {
+  // Inject File Manager styles once
+  if (!document.getElementById('files-app-styles')) {
+    const style = document.createElement('style');
+    style.id = 'files-app-styles';
+    style.textContent = `
+      .files-app-container{ display:flex; gap:16px; height:100%; }
+      .files-sidebar{ width:220px; background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:12px; padding:12px; backdrop-filter: blur(6px); }
+      .files-sidebar h3{ margin:0 0 8px 0; color:var(--muted); font-weight:800; font-size:14px; letter-spacing:.4px; }
+      .folder-item{ display:flex; align-items:center; gap:8px; padding:8px 10px; border-radius:10px; cursor:pointer; transition: transform .15s ease, background .15s ease; }
+      .folder-item:hover{ background:rgba(255,255,255,0.06); transform: translateX(2px); }
+      .folder-item.active{ background:rgba(255,255,255,0.10); }
+      .folder-item.drag-over{ outline:2px dashed var(--accent); background:rgba(255,255,255,0.12); }
+      .files-content{ flex:1; display:flex; flex-direction:column; gap:12px; }
+      .files-toolbar{ display:flex; gap:8px; }
+      .files-view{ flex:1; overflow:auto; }
+      .file-manager-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap:12px; }
+      .file-item{ background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; display:flex; flex-direction:column; align-items:center; gap:8px; cursor:pointer; transition: transform .18s ease, box-shadow .18s ease, background .18s ease; animation: fileIn .35s ease both; }
+      .file-item.dragging{ opacity:.5; transform: scale(.98); }
+      .file-item:hover{ transform: translateY(-3px) scale(1.02); box-shadow: 0 6px 18px rgba(0,0,0,0.26); background:rgba(255,255,255,0.06); }
+      .file-icon{ font-size:30px; }
+      .file-name{ text-align:center; font-size:12px; color:var(--fg); word-break: break-word; }
+      @keyframes fileIn { from { opacity:0; transform: translateY(6px) scale(.98);} to { opacity:1; transform: translateY(0) scale(1);} }
+    `;
+    document.head.appendChild(style);
+  }
+
   const root = document.createElement("div"); 
   root.className = "files-app-container";
   
@@ -8710,17 +9371,43 @@ function filesApp() {
   
   const foldersList = document.createElement("div");
   foldersList.style.marginTop = "12px";
+  let currentFolder = 'root';
   
+  // Helper to map folder names to icons
+  function getFolderIcon(name){
+    const n = (name||'').toLowerCase();
+    if (n.includes('music') || n.includes('audio')) return '🎵';
+    if (n.includes('picture') || n.includes('image') || n.includes('photos')) return '🖼️';
+    if (n.includes('video') || n.includes('movie')) return '🎬';
+    if (n.includes('document') || n === 'docs') return '📄';
+    if (n.includes('download')) return '⬇️';
+    if (n.includes('project') || n.includes('work')) return '🗂️';
+    if (n.includes('code') || n.includes('dev')) return '💻';
+    return '📁';
+  }
+
   // Add folders
   state.folders.forEach(folder => {
     const folderEl = document.createElement("div");
     folderEl.className = "folder-item";
-    folderEl.innerHTML = `<span>📁</span> ${folder}`;
+    folderEl.innerHTML = `<span>${getFolderIcon(folder)}</span> ${folder}`;
     folderEl.onclick = () => {
       document.querySelectorAll('.folder-item').forEach(el => el.classList.remove('active'));
       folderEl.classList.add('active');
+      currentFolder = folder;
       renderFiles(folder);
     };
+    // Enable drop to move files into this folder
+    folderEl.addEventListener('dragover', (ev) => { ev.preventDefault(); folderEl.classList.add('drag-over'); });
+    folderEl.addEventListener('dragleave', () => folderEl.classList.remove('drag-over'));
+    folderEl.addEventListener('drop', (ev) => {
+      ev.preventDefault(); folderEl.classList.remove('drag-over');
+      const fileId = ev.dataTransfer && ev.dataTransfer.getData('text/rtos-file-id');
+      if (fileId && state.files[fileId]) {
+        state.files[fileId].folder = folder;
+        renderFiles(currentFolder);
+      }
+    });
     foldersList.appendChild(folderEl);
   });
   
@@ -8731,8 +9418,20 @@ function filesApp() {
   rootFolder.onclick = () => {
     document.querySelectorAll('.folder-item').forEach(el => el.classList.remove('active'));
     rootFolder.classList.add('active');
+    currentFolder = 'root';
     renderFiles('root');
   };
+  // Drop on All Files moves to root
+  rootFolder.addEventListener('dragover', (ev) => { ev.preventDefault(); rootFolder.classList.add('drag-over'); });
+  rootFolder.addEventListener('dragleave', () => rootFolder.classList.remove('drag-over'));
+  rootFolder.addEventListener('drop', (ev) => {
+    ev.preventDefault(); rootFolder.classList.remove('drag-over');
+    const fileId = ev.dataTransfer && ev.dataTransfer.getData('text/rtos-file-id');
+    if (fileId && state.files[fileId]) {
+      state.files[fileId].folder = 'root';
+      renderFiles(currentFolder);
+    }
+  });
   foldersList.appendChild(rootFolder);
   
   sidebar.appendChild(foldersList);
@@ -8752,7 +9451,7 @@ function filesApp() {
       state.folders.push(name);
       const folderEl = document.createElement("div");
       folderEl.className = "folder-item";
-      folderEl.innerHTML = `<span>📁</span> ${name}`;
+      folderEl.innerHTML = `<span>${getFolderIcon(name)}</span> ${name}`;
       folderEl.onclick = () => {
         document.querySelectorAll('.folder-item').forEach(el => el.classList.remove('active'));
         folderEl.classList.add('active');
@@ -8765,13 +9464,17 @@ function filesApp() {
   const inputUpload = document.createElement("input"); 
   inputUpload.type = "file"; 
   inputUpload.multiple = true;
-  inputUpload.style.flex = "1";
+  inputUpload.style.display = 'none';
+  const btnUpload = document.createElement('button');
+  btnUpload.className = 'btn';
+  btnUpload.textContent = 'Upload Files';
+  btnUpload.onclick = () => inputUpload.click();
   
   const search = document.createElement("input"); 
   search.placeholder = "Search files..."; 
   search.style.flex = "1";
   
-  toolbar.append(btnNewFolder, inputUpload, search);
+  toolbar.append(btnNewFolder, btnUpload, search, inputUpload);
   
   const fileView = document.createElement("div");
   fileView.className = "files-view";
@@ -8797,9 +9500,16 @@ function filesApp() {
     const grid = document.createElement("div");
     grid.className = "file-manager-grid";
     
-    files.forEach(([id, f]) => {
+    files.forEach(([id, f], idx) => {
       const item = document.createElement("div");
       item.className = "file-item";
+      item.style.animationDelay = (idx * 0.03) + 's';
+      item.draggable = true;
+      item.addEventListener('dragstart', (ev) => {
+        ev.dataTransfer && ev.dataTransfer.setData('text/rtos-file-id', id);
+        item.classList.add('dragging');
+      });
+      item.addEventListener('dragend', () => item.classList.remove('dragging'));
       
       const icon = document.createElement("div");
       icon.className = "file-icon";
@@ -8811,13 +9521,16 @@ function filesApp() {
           icon.innerHTML = "🎬";
         } else if (f.type.startsWith("audio/")) {
           icon.innerHTML = "🎵";
+        } else if (f.type === 'text/html' || (f.name||'').toLowerCase().endsWith('.html')) {
+          icon.innerHTML = "🌐";
         } else if (f.type.includes("text") || f.type.includes("pdf")) {
           icon.innerHTML = "📄";
         } else {
-          icon.innerHTML = "📁";
+          icon.innerHTML = "📦";
         }
       } else {
-        icon.innerHTML = "📁";
+        // Unknown type: show generic file/box icon rather than folder
+        icon.innerHTML = "📦";
       }
       
       const name = document.createElement("div");
@@ -8845,6 +9558,11 @@ function filesApp() {
     if ((file.name||'').toLowerCase().endsWith('.nt') || (file.type||'').includes('rtos-note')) {
       const entry = Object.entries(state.files || {}).find(([id, f]) => f === file);
       openNoteWithFile(file, entry ? entry[0] : undefined);
+      return;
+    }
+    if ((file.name||'').toLowerCase().endsWith('.html') || (file.type||'') === 'text/html') {
+      const html = file.text || '';
+      sandboxWindowFromHtml(html, `Sandbox: ${file.name||'index.html'}`);
       return;
     }
     if (file.type && (file.type.startsWith('video/') || file.type.startsWith('audio/'))) {
@@ -8881,11 +9599,12 @@ function filesApp() {
     menu.style.left = `${e.clientX}px`;
     menu.style.top = `${e.clientY}px`;
     const isNt = (file.name||'').toLowerCase().endsWith('.nt') || (file.type||'').includes('rtos-note');
+    const isHtml = (file.name||'').toLowerCase().endsWith('.html') || (file.type||'') === 'text/html';
     const addToDesk = document.getElementById('fileCtxAddToDesktop');
     if (addToDesk) {
-      addToDesk.style.display = isNt ? 'block' : 'none';
+      addToDesk.style.display = (isNt || isHtml) ? 'block' : 'none';
       addToDesk.onclick = () => {
-        if (!isNt) return;
+        if (!(isNt || isHtml)) return;
         state.desktopShortcuts = state.desktopShortcuts || [];
         if (!state.desktopShortcuts.includes(fileId)) {
           state.desktopShortcuts.push(fileId);
@@ -8899,6 +9618,9 @@ function filesApp() {
       if ((file.name||'').toLowerCase().endsWith('.nt') || (file.type||'').includes('rtos-note')) {
         const entry = Object.entries(state.files || {}).find(([id, f]) => f === file);
         openNoteWithFile(file, entry ? entry[0] : undefined);
+      } else if ((file.name||'').toLowerCase().endsWith('.html') || (file.type||'') === 'text/html') {
+        const html = file.text || '';
+        sandboxWindowFromHtml(html, `Sandbox: ${file.name||'index.html'}`);
       } else if (file.type && (file.type.startsWith('video/') || file.type.startsWith('audio/'))) {
         openMediaWithFile(file);
       } else {
@@ -8982,7 +9704,7 @@ function filesApp() {
 }
 
 /* ----------------------
-   Trash Bin app
+   Trash Bin app (V2)
    ---------------------- */
 function trashApp() {
   const root = document.createElement("div"); 
@@ -8990,12 +9712,42 @@ function trashApp() {
   root.style.flexDirection = "column"; 
   root.style.height = "100%";
   
+  if (!document.getElementById('trash-app-styles')) {
+    const style = document.createElement('style');
+    style.id = 'trash-app-styles';
+    style.textContent = `
+      .trash-header{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding:8px 0 4px; }
+      .trash-title{ display:flex; align-items:center; gap:10px; font-weight:800; font-size:18px; letter-spacing:.3px; }
+      .trash-sub{ color:var(--muted); font-size:12px; }
+      .trash-actions{ display:flex; gap:8px; }
+      .trash-empty{ color:var(--muted); text-align:center; padding:40px; opacity:.9 }
+      .trash-grid{ display:grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap:12px; }
+      .trash-card{ background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:12px; display:flex; gap:12px; align-items:flex-start; transition: transform .18s ease, background .18s ease, box-shadow .18s ease; animation: trashIn .35s ease both; }
+      .trash-card:hover{ transform: translateY(-2px); background:rgba(255,255,255,0.06); box-shadow: 0 6px 18px rgba(0,0,0,0.24); }
+      .trash-icon{ font-size:26px; }
+      .trash-meta{ flex:1; min-width:0; }
+      .trash-name{ font-weight:700; }
+      .trash-date{ font-size:12px; color:var(--muted); }
+      .trash-ops{ display:flex; flex-direction:column; gap:6px; }
+      .trash-btn{ padding:6px 10px; border-radius:8px; border:1px solid rgba(255,255,255,0.14); background:rgba(255,255,255,0.06); color:#fff; cursor:pointer; font-weight:600; }
+      .trash-btn:hover{ background:rgba(255,255,255,0.1); }
+      .trash-btn.danger{ border-color: rgba(255,100,100,0.4); background: rgba(255,60,60,0.08); }
+      .trash-btn.danger:hover{ background: rgba(255,60,60,0.14); }
+      @keyframes trashIn{ from{ opacity:0; transform: translateY(6px) scale(.98);} to{ opacity:1; transform: translateY(0) scale(1);} }
+    `;
+    document.head.appendChild(style);
+  }
+
   root.innerHTML = `
-    <h2>Trash</h2>
-    <p>Deleted files and applications.</p>
-    <div style="display:flex; gap:8px; margin-bottom:12px;">
-      <button class="btn" id="trashEmpty">Empty Trash</button>
-      <button class="btn" id="trashRestoreAll">Restore All</button>
+    <div class="trash-header">
+      <div>
+        <div class="trash-title">🗑️ Trash</div>
+        <div class="trash-sub">Deleted items stay here until you empty or restore them.</div>
+      </div>
+      <div class="trash-actions">
+        <button class="btn" id="trashRestoreAll">Restore All</button>
+        <button class="btn" id="trashEmpty">Empty Trash</button>
+      </div>
     </div>
     <div id="trashList" style="flex:1; overflow:auto;"></div>
   `;
@@ -9004,41 +9756,54 @@ function trashApp() {
   const emptyBtn = root.querySelector("#trashEmpty");
   const restoreAllBtn = root.querySelector("#trashRestoreAll");
   
+  function getTrashIcon(it){
+    const t = it && it.type || '';
+    if (t.startsWith('image/')) return '🖼️';
+    if (t.startsWith('video/')) return '🎬';
+    if (t.startsWith('audio/')) return '🎵';
+    if (t === 'text/html' || (it.name||'').toLowerCase().endsWith('.html')) return '🌐';
+    if (t.includes('text') || t.includes('pdf')) return '📄';
+    return '📦';
+  }
+
   function renderTrash() {
     trashList.innerHTML = "";
     const items = Object.entries(state.trash || {});
-    
-    if (items.length === 0) {
-      trashList.innerHTML = '<div class="trash-empty">Trash is empty</div>';
-      return;
-    }
-    
-    items.forEach(([id, item]) => {
-      const el = document.createElement("div");
-      el.className = "trash-item";
-      
+    if (items.length === 0) { trashList.innerHTML = '<div class="trash-empty">Trash is empty</div>'; return; }
+
+    const grid = document.createElement('div');
+    grid.className = 'trash-grid';
+    items.forEach(([id, item], idx) => {
+      const card = document.createElement('div');
+      card.className = 'trash-card';
+      card.style.animationDelay = (idx * 0.03) + 's';
+
+      const icon = document.createElement('div');
+      icon.className = 'trash-icon';
+      icon.textContent = getTrashIcon(item);
+
+      const meta = document.createElement('div');
+      meta.className = 'trash-meta';
       const date = new Date(item.deletedAt || Date.now());
       const dateStr = date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-      
-      el.innerHTML = `
-        <div class="trash-item-name">
-          <div style="font-weight:700">${item.name}</div>
-          <div style="font-size:12px;color:var(--muted)">${dateStr}</div>
-        </div>
-      `;
-      
-      const restoreBtn = document.createElement("div");
-      restoreBtn.className = "trash-restore";
-      restoreBtn.innerText = "Restore";
-      restoreBtn.onclick = () => {
-        state.files[id] = item;
-        delete state.trash[id];
-        renderTrash();
-      };
-      
-      el.appendChild(restoreBtn);
-      trashList.appendChild(el);
+      meta.innerHTML = `<div class="trash-name">${item.name}</div><div class="trash-date">Deleted ${dateStr}</div>`;
+
+      const ops = document.createElement('div');
+      ops.className = 'trash-ops';
+      const btnRestore = document.createElement('button');
+      btnRestore.className = 'trash-btn';
+      btnRestore.textContent = 'Restore';
+      btnRestore.onclick = () => { state.files[id] = item; delete state.trash[id]; renderTrash(); };
+      const btnDelete = document.createElement('button');
+      btnDelete.className = 'trash-btn danger';
+      btnDelete.textContent = 'Delete';
+      btnDelete.onclick = () => { if (confirm(`Permanently delete "${item.name}"?`)) { delete state.trash[id]; renderTrash(); } };
+      ops.append(btnRestore, btnDelete);
+
+      card.append(icon, meta, ops);
+      grid.appendChild(card);
     });
+    trashList.appendChild(grid);
   }
   
   emptyBtn.onclick = () => {
@@ -9085,8 +9850,9 @@ function notesApp(opts = {}) {
   const btnSave = document.createElement('button'); btnSave.className = 'btn'; btnSave.textContent = 'Save to File Manager';
   const btnExport = document.createElement('button'); btnExport.className = 'btn'; btnExport.textContent = 'Export';
   const btnPin = document.createElement('button'); btnPin.className = 'btn'; btnPin.textContent = 'Add to Desktop';
+  const btnAddHtml = document.createElement('button'); btnAddHtml.className = 'btn'; btnAddHtml.textContent = 'Add HTML to Desktop';
 
-  header.append(titleEl, btnNew, btnSave, btnExport, btnPin);
+  header.append(titleEl, btnNew, btnSave, btnExport, btnAddHtml, btnPin);
 
   const ta = document.createElement('textarea');
   ta.style.flex = '1';
@@ -9172,6 +9938,32 @@ function notesApp(opts = {}) {
     if (!state.desktopShortcuts.includes(id)) state.desktopShortcuts.push(id);
     renderDesktopIcons();
     alert('Shortcut added to desktop');
+  };
+
+  // Save current textarea content as an .html file and add a desktop shortcut
+  btnAddHtml.onclick = () => {
+    const html = (ta.value || '').trim();
+    const looksHtml = /<\s*!doctype/i.test(html) || /<\s*html[\s>]/i.test(html) || /<\s*body[\s>]/i.test(html);
+    if (!looksHtml) {
+      alert('This does not look like valid HTML. Please include at least <html> or <!doctype> or <body>.');
+      return;
+    }
+    let nameSuggestion = (currentFile && currentFile.name ? currentFile.name.replace(/\.(nt|txt)$/i, '') : 'Untitled') + '.html';
+    let name = prompt('Save HTML as:', nameSuggestion);
+    if (name == null) return; // cancelled
+    name = (name || '').trim();
+    if (!name.toLowerCase().endsWith('.html')) name += '.html';
+    const id = 'f' + Date.now().toString(36) + Math.random().toString(36).slice(2,4);
+    state.files[id] = {
+      name,
+      type: 'text/html',
+      text: html,
+      folder: 'root'
+    };
+    state.desktopShortcuts = state.desktopShortcuts || [];
+    if (!state.desktopShortcuts.includes(id)) state.desktopShortcuts.push(id);
+    renderDesktopIcons();
+    alert('HTML saved and shortcut added to desktop');
   };
 
   root.addEventListener('contextmenu', (e) => {
@@ -9439,15 +10231,46 @@ function clockApp() {
     time.innerText = now.toLocaleTimeString();
   }
   
-  tick(); 
+  tick();
   setInterval(tick, 1000);
   root.append(time);
   return root;
 }
 
 /* ----------------------
-   CMD app!!!!!
-   ---------------------- */
+  Sandbox helpers (global)
+  ---------------------- */
+function sandboxWindowFromHtml(html, title = "Mod (sandbox)") {
+  const root = document.createElement('div');
+  root.style.height = '100%';
+  root.style.display = 'flex';
+  const iframe = document.createElement('iframe');
+  iframe.style.border = 'none';
+  iframe.style.width = '100%';
+  iframe.style.height = '100%';
+  iframe.setAttribute('sandbox', 'allow-scripts allow-modals');
+  iframe.srcdoc = html || '<!doctype html><title>Empty</title><body style="font-family:system-ui;color:#fff;background:#111;padding:16px">(empty)</body>';
+  root.appendChild(iframe);
+  createWindow(root, { title, id: 'mod-' + Date.now().toString(36) });
+}
+
+function sandboxWindowFromUrl(url, title = "Mod (sandbox)") {
+  const root = document.createElement('div');
+  root.style.height = '100%';
+  root.style.display = 'flex';
+  const iframe = document.createElement('iframe');
+  iframe.style.border = 'none';
+  iframe.style.width = '100%';
+  iframe.style.height = '100%';
+  iframe.setAttribute('sandbox', 'allow-scripts allow-modals');
+  iframe.src = url;
+  root.appendChild(iframe);
+  createWindow(root, { title, id: 'mod-' + Date.now().toString(36) });
+}
+
+/* ----------------------
+  CMD app!!!!!
+  ---------------------- */
 function cmdApp() {
   const root = document.createElement("div"); 
   root.style.display = "flex"; 
