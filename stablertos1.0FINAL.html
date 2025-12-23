@@ -10404,6 +10404,7 @@ function cmdApp() {
       write("  load-url [url]  - Open external HTML in sandboxed window");
       write("  inject-html     - Paste HTML to run in sandboxed window");
       write("  run-file [name] - Run saved file as sandboxed HTML");
+      write("  run-python-file [name] - Run saved file as sandboxed Python");
       write("  erase-all       - Erase ALL accounts and saved data");
       write("  erase-account <name> - Remove a single account and its data");
       write("  shutdown        - Show shutdown screen");
@@ -10541,6 +10542,17 @@ function cmdApp() {
       if (!html) { write("Selected file has no text content to run as HTML."); return; }
       write(`Running '${name}' in sandbox...`);
       sandboxWindowFromHtml(html, `Sandbox: ${name}`);
+    }
+    else if (resolved === 'run-python-file') {
+      const name = args.join(' ');
+      if (!name) { write("Usage: run-python-file <filename>"); return; }
+      const entry = Object.values(state.files || {}).find(f => f.name === name);
+      if (!entry) { write("File not found: " + name); return; }
+      const pythoncode = entry.text || ''
+      if (!pythoncode) { write("Selected file has no text content to run as Python."); return; }
+      const html = atob("PCFkb2N0eXBlIGh0bWw+CjxodG1sPgogIDxoZWFkPgogICAgPHNjcmlwdCBzcmM9J2h0dHBzOi8vY2RuLmpzZGVsaXZyLm5ldC9weW9kaWRlL3YwLjI5LjAvZnVsbC9weW9kaWRlLmpzJz48L3NjcmlwdD4KICA8L2hlYWQ+CgogIDxib2R5PgogICAgPGRpdj5PdXRwdXQ6PC9kaXY+CiAgICA8dGV4dGFyZWEgaWQ9J291dHB1dCcgc3R5bGU9J3dpZHRoOiAxMDAlOycgcm93cz0iMzIiIGRpc2FibGVkPjwvdGV4dGFyZWE+CgogICAgPHNjcmlwdD4KICAgICAgY29uc3Qgb3V0cHV0ID0gZG9jdW1lbnQuZ2V0RWxlbWVudEJ5SWQoJ291dHB1dCcpOwoKICAgICAgZnVuY3Rpb24gYWRkVG9PdXRwdXQocykgewogICAgICAgIG91dHB1dC52YWx1ZSArPSBzICsgIlxuIjsKICAgICAgfQogICAgICBvdXRwdXQudmFsdWUgPSAnSW5pdGlhbGl6aW5nLi4uXG4nOwogICAgICAvLyBpbml0IFB5b2RpZGUKICAgICAgYXN5bmMgZnVuY3Rpb24gbWFpbigpIHsKICAgICAgICBsZXQgcHlvZGlkZSA9IGF3YWl0IGxvYWRQeW9kaWRlKCk7CiAgICAgICAgcmV0dXJuIHB5b2RpZGU7CiAgICAgIH0KICAgICAgbGV0IHB5b2RpZGVSZWFkeVByb21pc2UgPSBtYWluKCk7CgogICAgICBhc3luYyBmdW5jdGlvbiBldmFsdWF0ZVB5dGhvbigpIHsKICAgICAgICBsZXQgcHlvZGlkZSA9IGF3YWl0IHB5b2RpZGVSZWFkeVByb21pc2U7CiAgICAgICAgdHJ5IHsKICAgICAgICAgICAgbGV0IG91dHB1dCA9IHB5b2RpZGUucnVuUHl0aG9uKGAkUFlUSE9OQ09ERSRgKTsKICAgICAgICAgICAgYWRkVG9PdXRwdXQob3V0cHV0KTsKICAgICAgICB9IGNhdGNoIChlcnIpIHsKICAgICAgICAgICAgYWRkVG9PdXRwdXQoZXJyKTsKICAgICAgICB9CiAgICAgIH0KICAgICAgZXZhbHVhdGVQeXRob24oKQogICAgPC9zY3JpcHQ+CiAgPC9ib2R5Pgo8L2h0bWw+").replace("$PYTHONCODE$", pythoncode)
+      write(`Running '${name}' in Python sandbox...`);
+      sandboxWindowFromHtml(html, `Python Sandbox: ${name}`);
     }
     else if (resolved === 'shutdown') {
       write('Shutting down...');

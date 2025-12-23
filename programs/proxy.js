@@ -3,8 +3,6 @@
 const express = require("express");
 const fetch = require("node-fetch");
 const app = express();
-const fs = require('fs');
-const path = require('path');
 
 app.use(express.static("public"));
 
