@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>3pm's utils</title>
+    </head>
+    <body style="background-color: #ffffff;">
+        <h1>3pm's utilities</h1>
+        <button id="runjsbtn">Run JS Script</button>
+    </body>
+    <script>
+        const runjsbtn = document.getElementById("runjsbtn")
+        runjsbtn.onclick = () => {
+            const jscode = prompt("Paste in the JS Code.\nWARNING: Make sure you trust the JS code!\nSomething bad, like your cookies or files, could get stolen!\nLeave it empty to cancel.")
+            if (jscode !== "") {
+                eval(jscode)
+            }
+        }
+    </script>
+</html>
